@@ -10,6 +10,8 @@ struct node{
 };
 
 void endInsertion(node * head, node * temp);
+void begInsertion(node **head, node * temp);
+
 
 void newNode(int value, node ** head){
     node *temp; // to store the head of the node and to store the temp addr of the new node
@@ -31,7 +33,13 @@ void newNode(int value, node ** head){
 
     if(firstNode == false){         //if first node do not do the end insertion.
     endInsertion(*head,temp);
+   // begInsertion(head,temp);
     }
+}
+
+void begInsertion(node **head, node * temp){
+    temp->link = *head; //points to the begning of the node
+    *head = temp;   //head points to the new temp node
 }
 
 void endInsertion(node * head, node * temp){
