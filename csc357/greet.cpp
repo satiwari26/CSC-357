@@ -46,20 +46,20 @@ using namespace std;
     
 // }
 
+void pointr(int **p){
+    int val = 43;
+    *p = &val; // dereferencing the pointer to point to val
+    cout<<"This is the addr of p storing val addr in ptr function: "<<*p<<endl;
+    cout<<"This is the addr of pointer to pointer address in ptr function: "<<p<<endl;
+}
 
 int main(){
-    char text[5]; //allocating 5 byte memory
-    //string a;
-    //cout<<sizeof(a)<<endl;
 
-    text[0] = 'h'; //(*text) = 'h'
-    text[1] = 'e';
-    text[2] = 'l';
-    text[3] = 'l';
-    text[4] = 'o';
-    //text[5] = 'w';
+    int *p = NULL;
 
-    printf("%s \n",text);
-    //cout<<text<<endl;
+    pointr(&p);
+
+    cout<<"this is the addr of p in main fucntion: "<<&p<<endl;
+    cout<<"this is the value hold by the p in main function: "<<p<<endl;
 }
 
