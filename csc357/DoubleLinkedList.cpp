@@ -14,7 +14,7 @@ listElement * head = NULL; //global head pointer to point to the nodes
 
 void newNode(char value[1000]);
 void printList();
-
+void deleteList(int nodeNumber);
 
 void newNode(char value[1000]){
     bool firstNode = false;
@@ -50,7 +50,7 @@ void printList(){
     }
     else{
         while(temp != NULL){    //print until temp is NULL
-            cout<<temp->text<<" ";  //dereferncing itself and getting the value of the current node its on
+            cout<<temp->text<<endl;  //dereferncing itself and getting the value of the current node its on
             temp = temp->next;  //after printing the current value of the node move temp to the next node.
         }
 
@@ -58,15 +58,74 @@ void printList(){
     }
 }
 
+void deleteList(int nodeNumber){
+    bool checker = false;   //to check if the corresponding number of node on the list
+
+    if(head == NULL){
+        cout<<"There are no List Elements."<<endl;
+    }
+    else{
+        listElement * curr = head;
+        //listElement * temp = NULL;
+        int count =1;
+        while(curr !=NULL){
+            if(nodeNumber == count){
+                if(nodeNumber==1){
+                    head = curr->next;
+                    if(curr->next != NULL){
+                        curr->next->prev = NULL;
+                    }
+                    //temp = curr;
+                    //curr = curr->next;
+                    delete(curr);
+                    checker = true;
+                    break;
+                }
+                else{
+                    if(curr->next ==NULL){  //if the last node set previous node next to null
+                        curr->prev->next = NULL;
+                        delete (curr);
+                        checker = true;
+                        break;
+                    }
+                    else{
+                    curr->prev->next = curr->next;  //connecting the previous(next) to current next
+                    curr->next->prev = curr->prev; //connecting the next(previous) to current previous
+                    delete (curr);
+                    checker = true;
+                    break;
+                    }
+                }
+            }
+            else{
+                curr = curr->next;
+                count = count+1;
+            }
+        }
+        if(checker == false){
+            cout<<"The corresponding number node doesn't exist on the list"<<endl;
+        }
+
+    }
+}
 
 int main(){
-    //char text[1000];
-    //strcpy(text,"Dhruv");
 
-    newNode("saumitra");
+    // char text[1000];
+    // //strcpy(text,"Cruel_hero");
+    // newNode(text);
+
+    newNode("Saumitra");
     newNode("Dhruv");
-    newNode("Hello");
-    newNode("DREW");
+    newNode("JUNior");
+    newNode("LOLVV");
+    newNode("Saumitra");
+    newNode("Dhruv");
+    newNode("JUNior");
+
+    printList();
+
+    deleteList(1);
 
     printList();
 
