@@ -46,7 +46,7 @@ void newNode(char value[1000]){
 
 void printList(){
     listElement * temp = head;  //temp pointer to traverse through the list
-    cout<<endl;
+    cout<<endl<<"LIST: "<<endl;
     if(temp == NULL){
         cout<<"There are no List elements."<<endl;
     }
@@ -166,18 +166,13 @@ int main(){
     // cout<<val<<endl;
 
 
-    char a = '1';
-
-    cout<<(int)a<<endl;
-
-
     char userOption = 'a';
     string val;
     char userVal[1000];
 
     bool checker = false;
 
-    int delVal;
+    char delVal[100];
 
     while(userOption != '4'){
         menuDisplay();
@@ -196,7 +191,7 @@ int main(){
             cin.ignore();
             cout<<"Enter the node number you want to delete."<<endl;
             cin>>delVal;
-            deleteList(delVal);
+            deleteList(atoi(delVal));
             
         }
         else if(userOption == '4'){
