@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 using namespace std;
 
@@ -45,6 +46,7 @@ void newNode(char value[1000]){
 
 void printList(){
     listElement * temp = head;  //temp pointer to traverse through the list
+    cout<<endl;
     if(temp == NULL){
         cout<<"There are no List elements."<<endl;
     }
@@ -79,13 +81,13 @@ void deleteList(int nodeNumber){
                     //curr = curr->next;
                     delete(curr);
                     checker = true;
-                    break;
+                    break;  //break the loop after deleting the corresponding number
                 }
                 else{
                     if(curr->next ==NULL){  //if the last node set previous node next to null
                         curr->prev->next = NULL;
                         delete (curr);
-                        checker = true;
+                        checker = true; //checker to check if the number was present on the list
                         break;
                     }
                     else{
@@ -109,25 +111,104 @@ void deleteList(int nodeNumber){
     }
 }
 
+//deleting the entire list
+void endProgram(){
+    listElement * curr = head;
+    listElement * temp = head;
+
+    while(curr != NULL){
+        curr = curr->next;
+        delete(temp);
+        temp = curr;
+    }
+}
+
+//display menu
+void menuDisplay(){
+
+    cout<<endl<<"Choose the right option to display the menu"<<endl<<endl;
+
+    cout<<"1. Push String"<<endl;
+    cout<<"2. Print List"<<endl;
+    cout<<"3. Delete item"<<endl;
+    cout<<"4. End Program"<<endl;
+
+}
+
 int main(){
 
     // char text[1000];
     // //strcpy(text,"Cruel_hero");
     // newNode(text);
 
-    newNode("Saumitra");
-    newNode("Dhruv");
-    newNode("JUNior");
-    newNode("LOLVV");
-    newNode("Saumitra");
-    newNode("Dhruv");
-    newNode("JUNior");
+    // newNode("Saumitra");
+    // newNode("Dhruv");
+    // newNode("JUNior");
+    // newNode("LOLVV");
+    // newNode("Saumitra");
+    // newNode("Dhruv");
+    // newNode("JUNior");
 
-    printList();
+    // printList();
 
-    deleteList(1);
+    // deleteList(2);
 
-    printList();
+    // printList();
+
+    // endProgram();
+
+    // printList();
+
+
+    // getline(cin,val);
+    // strcpy(t,val.c_str());
+
+    // cout<<val<<endl;
+
+
+    char a = '1';
+
+    cout<<(int)a<<endl;
+
+
+    char userOption = 'a';
+    string val;
+    char userVal[1000];
+
+    bool checker = false;
+
+    int delVal;
+
+    while(userOption != '4'){
+        menuDisplay();
+        cin>>userOption;
+        if(userOption =='1'){
+            cout<<"Enter the string that you want to insert"<<endl;
+            cin.ignore();
+            getline(cin,val);
+            strcpy(userVal,val.c_str());
+            newNode(userVal);
+        }
+        else if(userOption == '2'){
+            printList();
+        }
+        else if(userOption =='3'){
+            cin.ignore();
+            cout<<"Enter the node number you want to delete."<<endl;
+            cin>>delVal;
+            deleteList(delVal);
+            
+        }
+        else if(userOption == '4'){
+            endProgram();
+            break;
+            
+        }
+        else{
+            cout<<"wrong choice entered! please try again!"<<endl;
+        }
+    }
+
 
     return 0;
 }
