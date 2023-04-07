@@ -33,7 +33,7 @@ void newNode(int value, node ** head){
 
     if(firstNode == false){         //if first node do not do the end insertion.
     endInsertion(*head,temp);
-   // begInsertion(head,temp);
+   //  begInsertion(head,temp);
     }
 }
 
