@@ -63,19 +63,28 @@ using namespace std;
 //     cout<<"this is the value hold by the p in main function: "<<p<<endl;
 // }
 
-class name{
-    public:
-    int main;
-    float cam;
+// class name{
+//     public:
+//     int main;
+//     float cam;
 
-    name(){
-        int main1;
-        main =0;
-        cam = 0;
-    }
-};
+//     name(){
+//         int main1;
+//         main =0;
+//         cam = 0;
+//     }
+// };
 
 
 int main(){
-    cout<<sizeof(name)<<endl;
+    char text[] = "I sunk the Titanic";
+    char *p = text+1;
+    cout<<text[5]<<endl;
+    cout<<*(p+5)<<endl;
+    if(text[5]==*(p+5)){
+        cout<<"yes sir"<<endl;
+    }
+    else{
+        cout<<"No sir"<<endl;
+    }
 }
