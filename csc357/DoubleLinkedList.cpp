@@ -137,34 +137,6 @@ void menuDisplay(){
 
 int main(){
 
-    // char text[1000];
-    // //strcpy(text,"Cruel_hero");
-    // newNode(text);
-
-    // newNode("Saumitra");
-    // newNode("Dhruv");
-    // newNode("JUNior");
-    // newNode("LOLVV");
-    // newNode("Saumitra");
-    // newNode("Dhruv");
-    // newNode("JUNior");
-
-    // printList();
-
-    // deleteList(2);
-
-    // printList();
-
-    // endProgram();
-
-    // printList();
-
-
-    // getline(cin,val);
-    // strcpy(t,val.c_str());
-
-    // cout<<val<<endl;
-
 
     char userOption = 'a';
     string val;
