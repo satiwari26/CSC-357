@@ -136,8 +136,6 @@ void menuDisplay(){
 }
 
 int main(){
-
-
     char userOption = 'a';
     string val;
     char userVal[1000];
