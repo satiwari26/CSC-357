@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 
 using namespace std;
 
@@ -33,10 +34,22 @@ DWORD biClrUsed; //number of colors used by th ebitmap
 DWORD biClrImportant; //number of colors that are important
 };
 
+unsigned char power(unsigned char power,float scaling){
+    if(scaling>1){
+        return(pow(power,scaling)/(255*scaling));
+    }
+    else if(scaling<1){
+        return(pow(power,scaling));
+    }
+    else{
+        return(power);
+    }
+}
+
 
 int main(){
 
-    FILE *imageFile = fopen("flowers.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("tunnel.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -77,21 +90,24 @@ int main(){
     // }
 
 
-    unsigned char val[1473][2358];
+    unsigned char val[(infoheader.biHeight*3)][(infoheader.biWidth*3)];
+
+    //unsigned char **val;
+    //*val = (unsigned char *)sbrk(infoheader.biHeight*3);
 
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
 
     unsigned char some;
 
-    // for(int c=0;c<2358;c++){
+    // for(int c=0;c<(infoheader.biWidth*3);c++){
     //     fread(&some,sizeof(some),1,imageFile);
     // }
 
-    for(int j=0;j<1473;j++){
-        for(int k=0;k<2358;k++){
+    for(int j=0;j<(infoheader.biHeight*3);j++){
+        for(int k=0;k<(infoheader.biWidth*3);k++){
             fread(&some,sizeof(some),1,imageFile);
-            val[j][k] = some;
+            val[j][k] = power(some,2);
             
         }
     }
@@ -100,9 +116,12 @@ int main(){
 
 
 
+
+
+
     //trail for writing the file
 
-    unsigned char padd_val[2] = {0,0};
+   // unsigned char padd_val[2] = {0,0};
 
         FILE *aFile = fopen("flowersCPY.bmp", "wb");   //open the file to write the content
 
@@ -138,12 +157,13 @@ int main(){
 
     fseek(aFile,readHeader.bfOffBits,SEEK_SET);
 
-    for(int j=0;j<1473;j++){
-       for(int k=0;k<2358;k++){
+
+    for(int j=0;j<(infoheader.biHeight*3);j++){
+       for(int k=0;k<(infoheader.biWidth*3);k++){
             fwrite(&val[j][k],sizeof(val[j][k]),1,aFile);
             
         }
-        //fwrite(&padd_val,sizeof(padd_val),2,aFile); //padd two bytes at the end of the each row.
+        // fwrite(&white,sizeof(white),2,aFile); //padd two bytes at the end of the each row.
     }
     fclose(aFile);
 
