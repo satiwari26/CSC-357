@@ -36,16 +36,21 @@ DWORD biClrImportant; //number of colors that are important
 
 unsigned char power(unsigned char power,float scaling){
 
-    float value = (float)power/255;
+    float value = (float)power;
 
-     return(255*(pow(value,scaling)));
+     return(255*(pow(value/255,scaling)));
 
 }
 
 
-int main(){
+int main(int argc,char ** argv){
 
-    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
+    if(argc !=5){
+        printf("%s \n", "not the right number of arguments, try again");
+        return 0;
+    }
+
+    FILE *imageFile = fopen(argv[2], "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -116,7 +121,7 @@ int main(){
 
     for(int i =0;i<(infoheader.biHeight*3*infoheader.biWidth*3);i++){
         fread(&some,sizeof(some),1,imageFile);
-        val[i] = power(some,0.5);
+        val[i] = power(some,atof(argv[4]));
     }
 
     fclose(imageFile);  //close the file after reading it
@@ -127,7 +132,7 @@ int main(){
 
    // unsigned char padd_val[2] = {0,0};
 
-        FILE *aFile = fopen("flowersCPY.bmp", "wb");   //open the file to write the content
+        FILE *aFile = fopen(argv[3], "wb");   //open the file to write the content
 
     //checking weather the file is open or not
     if(aFile ==NULL){
@@ -182,6 +187,8 @@ int main(){
     fclose(aFile);
 
     }
+
+
 
     return 0;
 
