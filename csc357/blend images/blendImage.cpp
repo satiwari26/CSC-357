@@ -89,10 +89,18 @@ int main(){
     //unsigned char val[(infoheader.biHeight*3)][(infoheader.biWidth*3)];
 
 
-    unsigned char val[(infoheader.biHeight*3*infoheader.biWidth*3)];
+    //unsigned char val[(infoheader.biHeight*3*infoheader.biWidth*3)];
 
     
+    //unsigned ptr to point to the current program break on the heap
+    unsigned char * val, *temp;
 
+    //assigning block of memory on heap and using val to keep track of prgm brk
+    val = (unsigned char *)sbrk((infoheader.biHeight*3*infoheader.biWidth*3));
+
+    //current position of the prgm brk
+    temp = (unsigned char *)sbrk(0);
+    
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
 
@@ -112,7 +120,7 @@ int main(){
 
     for(int i =0;i<(infoheader.biHeight*3*infoheader.biWidth*3);i++){
         fread(&some,sizeof(some),1,imageFile);
-        val[i] = power(some,2.5);
+        val[i] = power(some,1.8);
     }
 
     fclose(imageFile);  //close the file after reading it
@@ -170,6 +178,11 @@ int main(){
        fwrite(&val[p],sizeof(val[p]),1,aFile);
     }
 
+    //freeing the memory on the heap
+    sbrk(-(infoheader.biHeight*3*infoheader.biWidth*3));
+    temp = (unsigned char *)sbrk(0);
+
+    //closing the file
     fclose(aFile);
 
     }
