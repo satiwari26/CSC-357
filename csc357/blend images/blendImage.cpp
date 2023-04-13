@@ -36,7 +36,7 @@ DWORD biClrImportant; //number of colors that are important
 
 unsigned char power(unsigned char power,float scaling){
     if(scaling>1){
-        return(pow(power,scaling)/(255*scaling));
+        return(pow(power,scaling)/255);
     }
     else if(scaling<1){
         return(pow(power,scaling));
@@ -49,7 +49,7 @@ unsigned char power(unsigned char power,float scaling){
 
 int main(){
 
-    FILE *imageFile = fopen("tunnel.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -83,17 +83,15 @@ int main(){
 
 
 
-    // unsigned char **val = new unsigned char*[1473];
-
-    // for(int i=0;i<1473;i++){
-    //     val[i] = new unsigned char[2358];
-    // }
+  
 
 
-    unsigned char val[(infoheader.biHeight*3)][(infoheader.biWidth*3)];
+    //unsigned char val[(infoheader.biHeight*3)][(infoheader.biWidth*3)];
 
-    //unsigned char **val;
-    //*val = (unsigned char *)sbrk(infoheader.biHeight*3);
+
+    unsigned char val[(infoheader.biHeight*3*infoheader.biWidth*3)];
+
+    
 
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
@@ -104,18 +102,20 @@ int main(){
     //     fread(&some,sizeof(some),1,imageFile);
     // }
 
-    for(int j=0;j<(infoheader.biHeight*3);j++){
+    /*for(int j=0;j<(infoheader.biHeight*3);j++){
         for(int k=0;k<(infoheader.biWidth*3);k++){
             fread(&some,sizeof(some),1,imageFile);
-            val[j][k] = power(some,2);
+            val[j][k] = power(some,1);
             
         }
+    }*/
+
+    for(int i =0;i<(infoheader.biHeight*3*infoheader.biWidth*3);i++){
+        fread(&some,sizeof(some),1,imageFile);
+        val[i] = power(some,2.5);
     }
+
     fclose(imageFile);  //close the file after reading it
-
-
-
-
 
 
 
@@ -158,15 +158,19 @@ int main(){
     fseek(aFile,readHeader.bfOffBits,SEEK_SET);
 
 
-    for(int j=0;j<(infoheader.biHeight*3);j++){
+    /*for(int j=0;j<(infoheader.biHeight*3);j++){
        for(int k=0;k<(infoheader.biWidth*3);k++){
             fwrite(&val[j][k],sizeof(val[j][k]),1,aFile);
             
         }
         // fwrite(&white,sizeof(white),2,aFile); //padd two bytes at the end of the each row.
-    }
-    fclose(aFile);
+    }*/
 
+    for(int p =0;p<(infoheader.biHeight*3*infoheader.biWidth*3);p++){
+       fwrite(&val[p],sizeof(val[p]),1,aFile);
+    }
+
+    fclose(aFile);
 
     }
 
