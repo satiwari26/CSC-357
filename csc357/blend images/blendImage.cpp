@@ -35,15 +35,11 @@ DWORD biClrImportant; //number of colors that are important
 };
 
 unsigned char power(unsigned char power,float scaling){
-    if(scaling>1){
-        return(pow(power,scaling)/255);
-    }
-    else if(scaling<1){
-        return(pow(power,scaling));
-    }
-    else{
-        return(power);
-    }
+
+    float value = (float)power/255;
+
+     return(255*(pow(value,scaling)));
+
 }
 
 
@@ -120,7 +116,7 @@ int main(){
 
     for(int i =0;i<(infoheader.biHeight*3*infoheader.biWidth*3);i++){
         fread(&some,sizeof(some),1,imageFile);
-        val[i] = power(some,1.8);
+        val[i] = power(some,0.5);
     }
 
     fclose(imageFile);  //close the file after reading it
