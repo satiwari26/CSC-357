@@ -45,12 +45,12 @@ unsigned char power(unsigned char power,float scaling){
 
 int main(int argc,char ** argv){
 
-    if(argc !=5){
+    if(argc !=4){
         printf("%s \n", "not the right number of arguments, try again");
         return 0;
     }
 
-    FILE *imageFile = fopen(argv[2], "rb");   //open the file to read the content
+    FILE *imageFile = fopen(argv[1], "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -121,7 +121,7 @@ int main(int argc,char ** argv){
 
     for(int i =0;i<(infoheader.biHeight*3*infoheader.biWidth*3);i++){
         fread(&some,sizeof(some),1,imageFile);
-        val[i] = power(some,atof(argv[4]));
+        val[i] = power(some,atof(argv[3]));
     }
 
     fclose(imageFile);  //close the file after reading it
@@ -132,7 +132,7 @@ int main(int argc,char ** argv){
 
    // unsigned char padd_val[2] = {0,0};
 
-        FILE *aFile = fopen(argv[3], "wb");   //open the file to write the content
+        FILE *aFile = fopen(argv[2], "wb");   //open the file to write the content
 
     //checking weather the file is open or not
     if(aFile ==NULL){
