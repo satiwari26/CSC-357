@@ -97,7 +97,7 @@ int main(int argc,char ** argv){
     unsigned char * val, *temp;
 
     //assigning block of memory on heap and using val to keep track of prgm brk
-    val = (unsigned char *)sbrk((infoheader.biHeight*3*infoheader.biWidth*3));
+    val = (unsigned char *)sbrk((infoheader.biHeight*infoheader.biWidth*3));
 
     //current position of the prgm brk
     temp = (unsigned char *)sbrk(0);
@@ -119,7 +119,7 @@ int main(int argc,char ** argv){
         }
     }*/
 
-    for(int i =0;i<(infoheader.biHeight*3*infoheader.biWidth*3);i++){
+    for(int i =0;i<(infoheader.biHeight*infoheader.biWidth*3);i++){
         fread(&some,sizeof(some),1,imageFile);
         val[i] = power(some,atof(argv[3]));
     }
@@ -175,12 +175,12 @@ int main(int argc,char ** argv){
         // fwrite(&white,sizeof(white),2,aFile); //padd two bytes at the end of the each row.
     }*/
 
-    for(int p =0;p<(infoheader.biHeight*3*infoheader.biWidth*3);p++){
+    for(int p =0;p<(infoheader.biHeight*infoheader.biWidth*3);p++){
        fwrite(&val[p],sizeof(val[p]),1,aFile);
     }
 
     //freeing the memory on the heap
-    sbrk(-(infoheader.biHeight*3*infoheader.biWidth*3));
+    sbrk(-(infoheader.biHeight*infoheader.biWidth*3));
     temp = (unsigned char *)sbrk(0);
 
     //closing the file
