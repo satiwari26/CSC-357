@@ -96,8 +96,19 @@ int main(int argc,char ** argv){
     //unsigned ptr to point to the current program break on the heap
     unsigned char * val, *temp;
 
+
+    //adding padding
+    LONG widthBytes,padding,real_width;
+
+    widthBytes = (infoheader.biWidth*3);
+    padding = 4-(widthBytes%4);
+    cout<<padding<<endl;
+    real_width = widthBytes+padding;
+    //adding padding
+
+
     //assigning block of memory on heap and using val to keep track of prgm brk
-    val = (unsigned char *)sbrk((infoheader.biHeight*infoheader.biWidth*3));
+    val = (unsigned char *)sbrk((real_width*infoheader.biHeight));
 
     //current position of the prgm brk
     temp = (unsigned char *)sbrk(0);
@@ -119,7 +130,8 @@ int main(int argc,char ** argv){
         }
     }*/
 
-    for(int i =0;i<(infoheader.biHeight*infoheader.biWidth*3);i++){
+
+    for(int i =0;i<(real_width*infoheader.biHeight);i++){
         fread(&some,sizeof(some),1,imageFile);
         val[i] = power(some,atof(argv[3]));
     }
@@ -175,12 +187,12 @@ int main(int argc,char ** argv){
         // fwrite(&white,sizeof(white),2,aFile); //padd two bytes at the end of the each row.
     }*/
 
-    for(int p =0;p<(infoheader.biHeight*infoheader.biWidth*3);p++){
+    for(int p =0;p<(real_width*infoheader.biHeight);p++){
        fwrite(&val[p],sizeof(val[p]),1,aFile);
     }
 
     //freeing the memory on the heap
-    sbrk(-(infoheader.biHeight*infoheader.biWidth*3));
+    sbrk(-(real_width*infoheader.biHeight));
     temp = (unsigned char *)sbrk(0);
 
     //closing the file
