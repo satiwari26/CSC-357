@@ -43,10 +43,15 @@ struct colorVal{
     unsigned char green;
     unsigned char red;
 };
-char grading(unsigned char value, float factor){
+colorVal grading(colorVal value, float R_factor,float G_factor,float B_factor){
 
+    // value.red = (255*value.red*R_factor)/(value.green+value.blue+value.red+255);
+    // value.green = (255*value.green*G_factor)/(value.green+value.blue+value.red+255);
+    // value.blue = (255*value.blue*B_factor)/(value.green+value.blue+value.red+255);
 
-    value = value*factor;
+    value.red = value.red*R_factor;
+    value.green = value.green*G_factor;
+    value.blue = value.blue*B_factor;
 
     return value;
 }
@@ -59,7 +64,7 @@ int main(){
     //     return 0;
     // }
 
-    FILE *imageFile = fopen("jar.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("tunnel.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -97,7 +102,7 @@ int main(){
     //adding padding
     LONG widthBytes,padding,real_width;
 
-    widthBytes = (infoheader.biWidth*3);
+    widthBytes = (infoheader.biWidth);
     padding = 4-(widthBytes%4);
     real_width = widthBytes+padding;
     //adding padding
@@ -105,42 +110,36 @@ int main(){
 
     //assigning block of memory on heap and using val to keep track of prgm brk
     val = (colorVal *)mmap(NULL,(real_width*infoheader.biHeight*sizeof(colorVal)),PROT_READ | PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS,-1,0);
-    
+
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
 
     // colorVal some;
 
-
      //read the content of the file in dynamic array
-    for(int t =0;t<(real_width*infoheader.biHeight);t=t+3){
-        fread(&((val+t)->blue),sizeof((val+t)->blue),1,imageFile);
-        fread(&((val+t+1)->green),sizeof((val+t+1)->green),1,imageFile);
-        fread(&((val+t+2)->red),sizeof((val+t+2)->red),1,imageFile);
+    for(int t =0;t<(real_width*infoheader.biHeight);t++){
+        fread(&val[t],sizeof(val[t]),1,imageFile);
+        // val[i] = grading(some,1,1.5,1);
     }
 
     clock_t a,b = clock();
     int pid;
     cout<<"Starting time: "<<a<<endl;
 
-    LONG halfHeight = (infoheader.biHeight*real_width)/2;
+    LONG halfHeight = (infoheader.biHeight)/2;
     pid = fork();
     if(pid==0){  //child process
         // performing the colorgrading
         // cout<<"we are in child process!"<<endl;
-        for(int i =0;i<((halfHeight));i=i+3){
-            (val+i)->blue = grading((val+i)->blue,3);
-            (val+i+1)->green = grading((val+i+1)->green,1);
-            (val+i+2)->red = grading((val+i+2)->red,2);
-            }
-            return 0;
+    for(int i =0;i<(real_width*halfHeight);i++){
+        val[i] = grading(val[i],0,1,0);
+        }
+        return 0;
     }
     else if(pid>0){   //parent process
     // cout<<"we are in the parent process"<<endl;
-        for(int j =(halfHeight*3);j<(real_width*infoheader.biHeight);j=j+3){
-        (val+j)->blue = grading((val+j)->blue,1);
-        (val+j+1)->green = grading((val+j+1)->green,2);
-        (val+j+2)->red = grading((val+j+2)->red,3);
+        for(int j =(real_width*halfHeight);j<(real_width*infoheader.biHeight);j++){
+        val[j] = grading(val[j],1,0,0);
         }
     }
     else{
@@ -167,7 +166,7 @@ int main(){
     }
     else{
         cout<<"Opening the file to write contents!"<<endl<<endl;
-    
+
 
 
     fwrite(&readHeader.bfType,sizeof(readHeader.bfType),1,aFile); //have to sequentially write the file content
@@ -193,11 +192,8 @@ int main(){
 
     fseek(aFile,readHeader.bfOffBits,SEEK_SET);
 
-    for(int p =0;p<(real_width*infoheader.biHeight);p=p+3){
-
-        fwrite(&((val+p)->blue),sizeof((val+p)->blue),1,aFile);
-        fwrite(&((val+p+1)->green),sizeof((val+p+1)->green),1,aFile);
-        fwrite(&((val+p+2)->red),sizeof((val+p+2)->red),1,aFile);
+    for(int p =0;p<(real_width*infoheader.biHeight);p++){
+       fwrite(&val[p],sizeof(val[p]),1,aFile);
     }
 
     //closing the file
@@ -210,18 +206,3 @@ int main(){
     return 0;
 
 }
-
-
-// int main(){
-//     int pid;
-
-//     pid = fork();
-
-//     if(pid==0){
-//         cout<<"child"<<endl;
-//     }
-//     else{
-//         cout<<"parent"<<endl;
-//         wait(0);
-//     }
-// }
