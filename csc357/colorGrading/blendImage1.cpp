@@ -42,7 +42,18 @@ struct colorVal{
     unsigned char green;
     unsigned char red;
 };
+colorVal grading(colorVal value, float R_factor,float G_factor,float B_factor){
 
+    // value.red = (255*value.red*R_factor)/(value.green+value.blue+value.red+255);
+    // value.green = (255*value.green*G_factor)/(value.green+value.blue+value.red+255);
+    // value.blue = (255*value.blue*B_factor)/(value.green+value.blue+value.red+255);
+
+    value.red = value.red*R_factor;
+    value.green = value.green*G_factor;
+    value.blue = value.blue*B_factor;
+
+    return value;
+}
 
 
 int main(){
@@ -52,7 +63,7 @@ int main(){
     //     return 0;
     // }
 
-    FILE *imageFile = fopen("tunnel.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -104,11 +115,18 @@ int main(){
 
     colorVal some;
 
+    clock_t a,b = clock();
+    cout<<"Starting time: "<<a<<endl;
+
     for(int i =0;i<(real_width*infoheader.biHeight);i++){
         fread(&some,sizeof(some),1,imageFile);
-        //val[i] = power(some,atof(argv[3]));
-        val[i] = some;
+        
+        val[i] = grading(some,1,1.5,1);
     }
+
+    b = clock();
+    cout<<"Ending time: "<<b<<endl;
+    cout<<"Total Run time :"<<(b-a)<<endl;
 
     fclose(imageFile);  //close the file after reading it
 
@@ -120,7 +138,7 @@ int main(){
         cout<<"Something went wrong! File is not opened"<<endl;
     }
     else{
-        cout<<"Opening the file to retrive the contents  to write!"<<endl<<endl;
+        cout<<"Opening the file to write contents!"<<endl<<endl;
     
 
 
