@@ -59,7 +59,7 @@ int main(){
     //     return 0;
     // }
 
-    FILE *imageFile = fopen("wolf.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -113,16 +113,11 @@ int main(){
 
 
      //read the content of the file in dynamic array
-    for(int t =0;t<(real_width*infoheader.biHeight);t++){
-        if(t%(infoheader.biWidth*3) ==0){
-            val[t] = 0;
-        }
-        else{
-            fread(&(val[t]),sizeof(val[t]),1,imageFile);
-        // fread(&((val+t)->blue),sizeof((val+t)->blue),1,imageFile);
-        // fread(&((val+t+1)->green),sizeof((val+t+1)->green),1,imageFile);
-        // fread(&((val+t+2)->red),sizeof((val+t+2)->red),1,imageFile);
-        }
+    for(int t =0;t<(real_width*infoheader.biHeight);t=t+3){
+        fread(&((val+t)->blue),sizeof((val+t)->blue),1,imageFile);
+        fread(&((val+t+1)->green),sizeof((val+t+1)->green),1,imageFile);
+        fread(&((val+t+2)->red),sizeof((val+t+2)->red),1,imageFile);
+
         // val[i] = grading(some,1,1.5,1);
     }
 
@@ -136,6 +131,11 @@ int main(){
         // performing the colorgrading
         // cout<<"we are in child process!"<<endl;
     for(int i =0;i<((halfHeight));i=i+3){
+
+        // if( i%(infoheader.biWidth*3)==0){
+        //     i = i+padding;
+        // }
+
         (val+i)->blue = grading((val+i)->blue,0);
         (val+i+1)->green = grading((val+i+1)->green,1);
         (val+i+2)->red = grading((val+i+2)->red,0);
@@ -145,6 +145,11 @@ int main(){
     else if(pid>0){   //parent process
     // cout<<"we are in the parent process"<<endl;
         for(int j =(halfHeight);j<(real_width*infoheader.biHeight);j=j+3){
+
+        // if( j%(infoheader.biWidth*3)==0){
+        //     j = j+padding;
+        // }
+
         (val+j)->blue = grading((val+j)->blue,1);
         (val+j+1)->green = grading((val+j+1)->green,0);
         (val+j+2)->red = grading((val+j+2)->red,0);
