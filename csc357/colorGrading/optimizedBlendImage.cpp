@@ -54,12 +54,7 @@ char grading(unsigned char value, float factor){
 
 int main(){
 
-    // if(argc !=4){
-    //     printf("%s \n", "not the right number of arguments, try again");
-    //     return 0;
-    // }
-
-    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("flowers.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -109,11 +104,11 @@ int main(){
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
 
-    // colorVal some;
 
-
-     //read the content of the file in dynamic array
     for(int t =0;t<(real_width*infoheader.biHeight);t=t+3){
+        if(t%(real_width)>=(infoheader.biWidth*3)){
+        t = t+padding;
+    }
         fread(&((val+t)->blue),sizeof((val+t)->blue),1,imageFile);
         fread(&((val+t+1)->green),sizeof((val+t+1)->green),1,imageFile);
         fread(&((val+t+2)->red),sizeof((val+t+2)->red),1,imageFile);
@@ -125,17 +120,10 @@ int main(){
     int pid;
     cout<<"Starting time: "<<a<<endl;
 
-    LONG halfHeight = (infoheader.biHeight*real_width)/2;
+    LONG halfHeight = (infoheader.biHeight*infoheader.biWidth*3)/2;
     pid = fork();
     if(pid==0){  //child process
-        // performing the colorgrading
-        // cout<<"we are in child process!"<<endl;
     for(int i =0;i<((halfHeight));i=i+3){
-
-        // if( i%(infoheader.biWidth*3)==0){
-        //     i = i+padding;
-        // }
-
         (val+i)->blue = grading((val+i)->blue,0);
         (val+i+1)->green = grading((val+i+1)->green,1);
         (val+i+2)->red = grading((val+i+2)->red,0);
@@ -143,12 +131,8 @@ int main(){
         return 0;
     }
     else if(pid>0){   //parent process
-    // cout<<"we are in the parent process"<<endl;
-        for(int j =(halfHeight);j<(real_width*infoheader.biHeight);j=j+3){
+        for(int j =(halfHeight);j<(infoheader.biWidth*3*infoheader.biHeight);j=j+3){
 
-        // if( j%(infoheader.biWidth*3)==0){
-        //     j = j+padding;
-        // }
 
         (val+j)->blue = grading((val+j)->blue,1);
         (val+j+1)->green = grading((val+j+1)->green,0);
@@ -182,13 +166,11 @@ int main(){
     
 
 
-    fwrite(&readHeader.bfType,sizeof(readHeader.bfType),1,aFile); //have to sequentially write the file content
+    fwrite(&readHeader.bfType,sizeof(readHeader.bfType),1,aFile); 
     fwrite(&readHeader.bfSize,sizeof(readHeader.bfSize),1,aFile); 
     fwrite(&readHeader.bfReserved1,sizeof(readHeader.bfReserved1),1,aFile); 
     fwrite(&readHeader.bfReserved2,sizeof(readHeader.bfReserved2),1,aFile); 
     fwrite(&readHeader.bfOffBits,sizeof(readHeader.bfOffBits),1,aFile); 
-
-    //sequentially writing the file content from image header
 
     fwrite(&infoheader.biSize,sizeof(infoheader.biSize),1,aFile);
     fwrite(&infoheader.biWidth,sizeof(infoheader.biWidth),1,aFile);
@@ -205,7 +187,16 @@ int main(){
 
     fseek(aFile,readHeader.bfOffBits,SEEK_SET);
 
+    unsigned char pholder=255;
+
     for(int p =0;p<(real_width*infoheader.biHeight);p=p+3){
+
+    //     if(p%(real_width)>=(infoheader.biWidth*3)){
+    //     // p = p+padding;
+    //     fwrite(&(pholder),sizeof(pholder),1,aFile);
+    //     fwrite(&(pholder),sizeof(pholder),1,aFile);
+    //     fwrite(&((val+p+2)->red),sizeof((val+p+2)->red),1,aFile);
+    // }
 
         fwrite(&((val+p)->blue),sizeof((val+p)->blue),1,aFile);
         fwrite(&((val+p+1)->green),sizeof((val+p+1)->green),1,aFile);
@@ -222,18 +213,3 @@ int main(){
     return 0;
 
 }
-
-
-// int main(){
-//     int pid;
-
-//     pid = fork();
-
-//     if(pid==0){
-//         cout<<"child"<<endl;
-//     }
-//     else{
-//         cout<<"parent"<<endl;
-//         wait(0);
-//     }
-// }
