@@ -59,7 +59,7 @@ int main(){
     //     return 0;
     // }
 
-    FILE *imageFile = fopen("wolf.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("flowers.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -104,7 +104,7 @@ int main(){
 
 
     //assigning block of memory on heap and using val to keep track of prgm brk
-    val = (colorVal *)mmap(NULL,(real_width*infoheader.biHeight*sizeof(colorVal)),PROT_READ | PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS,-1,0);
+    val = (colorVal *)mmap(NULL,(real_width*infoheader.biHeight),PROT_READ | PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS,-1,0);
     
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
@@ -113,17 +113,10 @@ int main(){
 
 
      //read the content of the file in dynamic array
-    for(int t =0;t<(real_width*infoheader.biHeight);t++){
-        if(t%(infoheader.biWidth*3) ==0){
-            val[t] = 0;
-        }
-        else{
-            fread(&(val[t]),sizeof(val[t]),1,imageFile);
-        // fread(&((val+t)->blue),sizeof((val+t)->blue),1,imageFile);
-        // fread(&((val+t+1)->green),sizeof((val+t+1)->green),1,imageFile);
-        // fread(&((val+t+2)->red),sizeof((val+t+2)->red),1,imageFile);
-        }
-        // val[i] = grading(some,1,1.5,1);
+    for(int t =0;t<(real_width*infoheader.biHeight);t=t+3){
+        fread(&((val+t)->blue),sizeof((val+t)->blue),1,imageFile);
+        fread(&((val+t+1)->green),sizeof((val+t+1)->green),1,imageFile);
+        fread(&((val+t+2)->red),sizeof((val+t+2)->red),1,imageFile);
     }
 
     clock_t a,b = clock();
