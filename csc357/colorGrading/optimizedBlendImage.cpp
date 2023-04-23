@@ -59,7 +59,7 @@ int main(){
     //     return 0;
     // }
 
-    FILE *imageFile = fopen("flowers.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("jar.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -104,7 +104,7 @@ int main(){
 
 
     //assigning block of memory on heap and using val to keep track of prgm brk
-    val = (colorVal *)mmap(NULL,(real_width*infoheader.biHeight),PROT_READ | PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS,-1,0);
+    val = (colorVal *)mmap(NULL,(real_width*infoheader.biHeight*sizeof(colorVal)),PROT_READ | PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS,-1,0);
     
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
@@ -128,19 +128,19 @@ int main(){
     if(pid==0){  //child process
         // performing the colorgrading
         // cout<<"we are in child process!"<<endl;
-    for(int i =0;i<((halfHeight));i=i+3){
-        (val+i)->blue = grading((val+i)->blue,0);
-        (val+i+1)->green = grading((val+i+1)->green,1);
-        (val+i+2)->red = grading((val+i+2)->red,0);
-        }
-        return 0;
+        for(int i =0;i<((halfHeight));i=i+3){
+            (val+i)->blue = grading((val+i)->blue,3);
+            (val+i+1)->green = grading((val+i+1)->green,1);
+            (val+i+2)->red = grading((val+i+2)->red,2);
+            }
+            return 0;
     }
     else if(pid>0){   //parent process
     // cout<<"we are in the parent process"<<endl;
-        for(int j =(halfHeight);j<(real_width*infoheader.biHeight);j=j+3){
+        for(int j =(halfHeight*3);j<(real_width*infoheader.biHeight);j=j+3){
         (val+j)->blue = grading((val+j)->blue,1);
-        (val+j+1)->green = grading((val+j+1)->green,0);
-        (val+j+2)->red = grading((val+j+2)->red,0);
+        (val+j+1)->green = grading((val+j+1)->green,2);
+        (val+j+2)->red = grading((val+j+2)->red,3);
         }
     }
     else{
