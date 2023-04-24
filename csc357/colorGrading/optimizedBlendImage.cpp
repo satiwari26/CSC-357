@@ -64,7 +64,7 @@ int main(){
     //     return 0;
     // }
 
-    FILE *imageFile = fopen("tunnel.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -122,9 +122,9 @@ int main(){
         // val[i] = grading(some,1,1.5,1);
     }
 
-    clock_t a,b = clock();
+    clock_t a = clock();
     int pid;
-    cout<<"Starting time: "<<a<<endl;
+    cout<<"Starting time: "<<(float)a<<endl;
 
     LONG halfHeight = (infoheader.biHeight)/2;
     pid = fork();
@@ -149,9 +149,9 @@ int main(){
 
     wait(0);
 
-    b = clock();
-    cout<<"Ending time: "<<b<<endl;
-    cout<<"Total Run time :"<<(b-a)<<endl;
+    a = clock();
+    cout<<"Ending time: "<<(float)a<<endl;
+    //cout<<"Total Run time :"<<(b-a)<<endl;
 
 
 

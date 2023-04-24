@@ -113,20 +113,25 @@ int main(){
 
     fseek(imageFile,readHeader.bfOffBits,SEEK_SET); //offset it to the pixel data
 
-    colorVal some;
+    // colorVal some;
 
-    clock_t a,b = clock();
-    cout<<"Starting time: "<<a<<endl;
-
+     //read the content of the file in dynamic array
     for(int i =0;i<(real_width*infoheader.biHeight);i++){
-        fread(&some,sizeof(some),1,imageFile);
-        
-        val[i] = grading(some,1,1.5,1);
+        fread(&val[i],sizeof(val[i]),1,imageFile);
+        // val[i] = grading(some,1,1.5,1);
     }
 
-    b = clock();
-    cout<<"Ending time: "<<b<<endl;
-    cout<<"Total Run time :"<<(b-a)<<endl;
+    clock_t a = clock();
+    cout<<"Starting time: "<<(float)a<<endl;
+
+        // performing the colorgrading
+    for(int i =0;i<(real_width*infoheader.biHeight);i++){
+        val[i] = grading(val[i],1,1,1);
+    }
+
+    a = clock();
+    cout<<"Ending time: "<<(float)a<<endl;
+    //cout<<"Total Run time :"<<(b-a)<<endl;
 
     fclose(imageFile);  //close the file after reading it
 
