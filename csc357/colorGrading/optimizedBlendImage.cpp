@@ -57,14 +57,14 @@ colorVal grading(colorVal value, float R_factor,float G_factor,float B_factor){
 }
 
 
-int main(){
+int main(int argc, char **argv){
 
-    // if(argc !=4){
-    //     printf("%s \n", "not the right number of arguments, try again");
-    //     return 0;
-    // }
+    if(argc !=6){
+        printf("%s \n", "not the right number of arguments, try again");
+        return 0;
+    }
 
-    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen(argv[1], "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -132,14 +132,14 @@ int main(){
         // performing the colorgrading
         // cout<<"we are in child process!"<<endl;
     for(int i =0;i<(real_width*halfHeight);i++){
-        val[i] = grading(val[i],0,1,0);
+        val[i] = grading(val[i],atof(argv[2]),atof(argv[3]),atof(argv[4]));
         }
         return 0;
     }
     else if(pid>0){   //parent process
     // cout<<"we are in the parent process"<<endl;
         for(int j =(real_width*halfHeight);j<(real_width*infoheader.biHeight);j++){
-        val[j] = grading(val[j],1,0,0);
+        val[j] = grading(val[j],atof(argv[2]),atof(argv[3]),atof(argv[4]));
         }
     }
     else{
@@ -158,7 +158,7 @@ int main(){
     fclose(imageFile);  //close the file after reading it
 
 
-        FILE *aFile = fopen("lionLogic.bmp", "wb");   //open the file to write the content
+        FILE *aFile = fopen(argv[5], "wb");   //open the file to write the content
 
     //checking weather the file is open or not
     if(aFile ==NULL){

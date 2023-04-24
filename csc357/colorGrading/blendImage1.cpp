@@ -56,14 +56,14 @@ colorVal grading(colorVal value, float R_factor,float G_factor,float B_factor){
 }
 
 
-int main(){
+int main(int argc, char ** argv){
 
-    // if(argc !=4){
-    //     printf("%s \n", "not the right number of arguments, try again");
-    //     return 0;
-    // }
+    if(argc !=6){
+        printf("%s \n", "not the right number of arguments, try again");
+        return 0;
+    }
 
-    FILE *imageFile = fopen("lion.bmp", "rb");   //open the file to read the content
+    FILE *imageFile = fopen(argv[1], "rb");   //open the file to read the content
 
     //checking weather the file is open or not
     if(imageFile ==NULL){
@@ -126,7 +126,7 @@ int main(){
 
         // performing the colorgrading
     for(int i =0;i<(real_width*infoheader.biHeight);i++){
-        val[i] = grading(val[i],1,1,1);
+        val[i] = grading(val[i],atof(argv[2]),atof(argv[3]),atof(argv[4]));
     }
 
     a = clock();
@@ -136,7 +136,7 @@ int main(){
     fclose(imageFile);  //close the file after reading it
 
 
-        FILE *aFile = fopen("lionLogic.bmp", "wb");   //open the file to write the content
+        FILE *aFile = fopen(argv[5], "wb");   //open the file to write the content
 
     //checking weather the file is open or not
     if(aFile ==NULL){
