@@ -123,8 +123,9 @@ int main(int argc, char **argv){
     }
 
     clock_t a = clock();
+    float StartSec = (float)a/CLOCKS_PER_SEC;
     int pid;
-    cout<<"Starting time: "<<(float)a<<endl;
+    cout<<"Starting time: "<<StartSec<<endl;
 
     LONG halfHeight = (infoheader.biHeight)/2;
     pid = fork();
@@ -150,8 +151,9 @@ int main(int argc, char **argv){
     wait(0);
 
     a = clock();
-    cout<<"Ending time: "<<(float)a<<endl;
-    //cout<<"Total Run time :"<<(b-a)<<endl;
+    float EndSec= (float)a/CLOCKS_PER_SEC;
+    cout<<"Ending time: "<<EndSec<<endl;
+    cout<<"Total Run time :"<<(EndSec-StartSec)<<endl;
 
 
 
