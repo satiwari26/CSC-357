@@ -122,7 +122,8 @@ int main(int argc, char ** argv){
     }
 
     clock_t a = clock();
-    cout<<"Starting time: "<<(float)a<<endl;
+    float StartSec= (float)a/CLOCKS_PER_SEC;
+    cout<<"Starting time: "<<StartSec<<endl;
 
         // performing the colorgrading
     for(int i =0;i<(real_width*infoheader.biHeight);i++){
@@ -130,8 +131,9 @@ int main(int argc, char ** argv){
     }
 
     a = clock();
-    cout<<"Ending time: "<<(float)a<<endl;
-    //cout<<"Total Run time :"<<(b-a)<<endl;
+    float EndSec = (float)a/CLOCKS_PER_SEC;
+    cout<<"Ending time: "<<EndSec<<endl;
+    cout<<"Total Run time :"<<EndSec-StartSec<<endl;
 
     fclose(imageFile);  //close the file after reading it
 
