@@ -7,7 +7,6 @@
 #include<time.h>
 #include<sys/mman.h>
 #include <sys/wait.h>
-#include <string.h>
 using namespace std;
 
 int fd[2];
@@ -50,7 +49,6 @@ int main(){
             if(sigFlagChild !=1){
                 close(fd[0]);   //writing end of the pipe
                 // kill(parentPID,SIGUSR1);    //passing the signal to the parent
-                memset(text,0,sizeof(text));
                 write(fd[1],"user is Inactive!", 18);
                 kill(parentPID,SIGUSR1);    //passing the signal to the parent
                 close(fd[1]);
