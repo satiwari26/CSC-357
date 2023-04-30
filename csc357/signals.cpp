@@ -7,21 +7,22 @@
 #include<time.h>
 #include<sys/mman.h>
 #include <sys/wait.h>
+#include <string.h>
 using namespace std;
 
 int fd[2];
 int sigFlagChild =0;
 int sigFlagParent =0;
     char text[1000];
-    char activity[30];
+    char activity[3000];
+int save_stdin = dup(STDIN_FILENO);
 //creating a signal handler function
 void signalhandlerParent(int sig){
-    int save_stdin = dup(STDIN_FILENO);
     dup2(fd[0], STDIN_FILENO);  //overwriting the stdin with fd[0]
-    read(STDIN_FILENO, text,21);    //read the value in from the other end of the pipe
+    read(STDIN_FILENO, text,18);    //read the value in from the other end of the pipe
         dup2(save_stdin,STDIN_FILENO);
         cout<<text<<endl;
-    sigFlagParent = 1;
+    sigFlagParent = 0;
 }
 
 void signalhandlerChild(int signal){
@@ -48,8 +49,10 @@ int main(){
             }
             if(sigFlagChild !=1){
                 close(fd[0]);   //writing end of the pipe
+                // kill(parentPID,SIGUSR1);    //passing the signal to the parent
+                memset(text,0,sizeof(text));
+                write(fd[1],"user is Inactive!", 18);
                 kill(parentPID,SIGUSR1);    //passing the signal to the parent
-                write(fd[1],"user is Inactive!", 21);
                 close(fd[1]);
             }
             sigFlagChild = 0;
@@ -63,8 +66,12 @@ int main(){
 
         //loop through to countinously read the data in from the stdin
         while(true){
-             scanf("%s",text); //get the text value from the user
-            // kill(*childPID, SIGUSR1);
+             scanf("%s",activity); //get the activity value from the user
+             if(sigFlagParent ==0){
+                 kill(*childPID, SIGUSR1);
+                 cout<<"!"<<activity<<"!"<<endl;
+             }
+              sigFlagParent = 0;
         }
         wait(0);
     }
