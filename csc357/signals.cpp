@@ -44,7 +44,7 @@ int main(){
             time_t sTime = time(NULL); //start time
             int eTime = 0;
 
-            while(eTime < 5){
+            while(eTime < 10){
                 eTime = time(NULL)-sTime;
                 if(sigFlagChild ==1){
                     eTime = 11;
