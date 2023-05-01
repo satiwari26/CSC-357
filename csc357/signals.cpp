@@ -6,6 +6,7 @@
 #include <iostream>
 #include<time.h>
 #include<sys/mman.h>
+#include <string.h>
 #include <sys/wait.h>
 using namespace std;
 
@@ -43,7 +44,7 @@ int main(){
             time_t sTime = time(NULL); //start time
             int eTime = 0;
 
-            while(eTime < 10){
+            while(eTime < 5){
                 eTime = time(NULL)-sTime;
                 if(sigFlagChild ==1){
                     eTime = 11;
@@ -69,10 +70,14 @@ int main(){
         //loop through to countinously read the data in from the stdin
         while(true){
              scanf("%s",activity); //get the activity value from the user
-            //  if(sigFlagParent ==0){
+
+                if(strcmp(activity,"quit")==0){ //quit signal to terminate the program
+                    kill(*childPID,SIGTERM);
+                    break;
+                }
+
                  kill(*childPID, SIGUSR1);
                  cout<<"!"<<activity<<"!"<<endl;
-            //  }
               sigFlagParent = 0;
         }
         wait(0);
