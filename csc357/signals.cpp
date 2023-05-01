@@ -43,9 +43,13 @@ int main(){
             time_t sTime = time(NULL); //start time
             int eTime = 0;
 
-            while(eTime < 5){
+            while(eTime < 10){
                 eTime = time(NULL)-sTime;
+                if(sigFlagChild ==1){
+                    eTime = 11;
+                }
             }
+
             if(sigFlagChild !=1){
                 close(fd[0]);   //writing end of the pipe
                 // kill(parentPID,SIGUSR1);    //passing the signal to the parent
@@ -65,10 +69,10 @@ int main(){
         //loop through to countinously read the data in from the stdin
         while(true){
              scanf("%s",activity); //get the activity value from the user
-             if(sigFlagParent ==0){
+            //  if(sigFlagParent ==0){
                  kill(*childPID, SIGUSR1);
                  cout<<"!"<<activity<<"!"<<endl;
-             }
+            //  }
               sigFlagParent = 0;
         }
         wait(0);
