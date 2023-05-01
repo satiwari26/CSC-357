@@ -69,7 +69,9 @@ int main(){
 
         //loop through to countinously read the data in from the stdin
         while(true){
-             scanf("%s",activity); //get the activity value from the user
+            //  scanf("%s",activity); //get the activity value from the user
+                fgets(activity,sizeof(activity),stdin);
+                activity[strcspn(activity, "\n")] = 0;  //compares the string and sets the value of that string to the null value
 
                 if(strcmp(activity,"quit")==0){ //quit signal to terminate the program
                     kill(*childPID,SIGTERM);
