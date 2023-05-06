@@ -7,6 +7,7 @@
 #include<sys/stat.h>
 #include<dirent.h>
 #include<fcntl.h>
+#include <string.h>
 
 using namespace std;
 
@@ -14,23 +15,30 @@ using namespace std;
 int main(){
 
     int fd = shm_open("cubeMem",O_RDWR,0777);
-    char *p = (char*)mmap(NULL,100*sizeof(char),PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+    char *p = (char*)mmap(NULL,1000*sizeof(char),PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
 
-     while(true){
+      while(true){
 
         if(fd ==-1){
-            cout<<"not assigned"<<endl;
+            cout<<"not assigned! run the first program to fix this issue"<<endl;
             break;
         }
         else{
-        printf("%s \n", p);
+            if(strcmp(p,"quit")==0){
+                break;
+            }
+            else{
+                if(p[0]!='\0'){
+                  cout<<p<<endl;
+                  memset(p, '\0', sizeof(p));
+                }
+            }
         //break;
         }
-
-     }
+      }
     close(fd);
     shm_unlink("cubeMem");
-    munmap(p,100*sizeof(char));
+    munmap(p,1000*sizeof(char));
 
     return 0;
 }
