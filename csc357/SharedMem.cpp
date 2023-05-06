@@ -7,6 +7,7 @@
 #include<sys/stat.h>
 #include<dirent.h>
 #include<fcntl.h>
+#include<string.h>
 
 using namespace std;
 
@@ -16,14 +17,18 @@ int main(){
     int fd = shm_open("cubeMem",O_RDWR|O_CREAT,0777);
     ftruncate(fd,100*sizeof(int));
 
-    int *p = (int*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-    p[0] = 100;
+    char *p = (char*)mmap(NULL,100*sizeof(char),PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
+    
+    while(strcmp(p,"quit")!=0){
+   //strcpy(p,"my name is saumitra");
+    scanf("%s",p);
+    sleep(1);
 
-    sleep(10);
+    }
 
     close(fd);
     shm_unlink("cubeMem");
-    munmap(p,100*sizeof(int));
+    munmap(p,100*sizeof(char));
 
     return 0;
 }
