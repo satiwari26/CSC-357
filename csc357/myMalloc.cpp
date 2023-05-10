@@ -182,8 +182,9 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
     }
 }
 
-void myFree(chunkinfo *addrVal){ 
+void myFree(void *inputVal){ 
 
+    chunkinfo *addrVal = (chunkinfo*)inputVal;
     if(startOfHeap==NULL){
         cout<<"Error! there is no allocated memory to remove."<<endl;
         return;
@@ -257,14 +258,14 @@ int main(){
     addr1 = myMalloc(54);
      addr2 = myMalloc(8168);
      addr7 = myMalloc(24);
-     myFree((chunkinfo*)addr2);
+     myFree(addr2);
      analyze();
      addr3 = myMalloc(346);
     analyze();
     addr4 = myMalloc(43); 
     analyze();
     addr5 = myMalloc(2345);
-    myFree((chunkinfo*)addr4);
+    myFree(addr4);
     addr6 = myMalloc(9000);
     analyze();
 
