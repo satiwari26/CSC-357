@@ -209,6 +209,15 @@ void myFree(void *inputVal){
         sbrk(-(addrVal->size));
     }
     else{
+            if(addrVal ==(chunkinfo*)startOfHeap){  //if we remove the first element after inserting other elements
+                addrVal->inuse = 0;
+                if(nextVal->inuse ==0){
+                    addrVal->next = nextVal->next;
+                    addrVal->size = addrVal->size+nextVal->size;
+                }
+                return;
+            }
+
         if(nextVal->inuse==0 && prevVal->inuse==0){  //if prev and next pages are empty
             prevVal->next = nextVal->next;
             prevVal->size = (prevVal->size)+(addrVal->size)+(nextVal->size);
@@ -258,14 +267,12 @@ int main(){
     addr1 = myMalloc(54);
      addr2 = myMalloc(8168);
      addr7 = myMalloc(24);
-     myFree(addr2);
-     analyze();
      addr3 = myMalloc(346);
-    analyze();
     addr4 = myMalloc(43); 
-    analyze();
     addr5 = myMalloc(2345);
-    myFree(addr4);
+    analyze();
+    myFree(addr2);
+    myFree(addr1);
     addr6 = myMalloc(9000);
     analyze();
 
