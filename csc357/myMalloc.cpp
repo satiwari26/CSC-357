@@ -183,6 +183,12 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
 }
 
 void myFree(chunkinfo *addrVal){ 
+
+    if(startOfHeap==NULL){
+        cout<<"Error! there is no allocated memory to remove."<<endl;
+        return;
+    }
+
     addrVal = addrVal-1;    //offset it to 24 bytes back!!
     //collect info of prev and next node
     chunkinfo *nextVal,*prevVal;
@@ -190,7 +196,15 @@ void myFree(chunkinfo *addrVal){
     prevVal = (chunkinfo*)addrVal->prev;
 
     if(addrVal==(chunkinfo*)EndOfHeap){  //if the last page on the mem, move the pgrm brk up
+
+        if(addrVal !=(chunkinfo*)startOfHeap){  //make sure that it is not the first element that we are removing
         prevVal->next = NULL;   //since we are removing the last node out
+        }
+        else{   //if it is the first element that we are using, set the start and the end of heap to NULL
+            startOfHeap = NULL;
+            EndOfHeap = NULL;
+        }
+        EndOfHeap = (void*)addrVal->prev;  //change the End pointer to last page addr
         sbrk(-(addrVal->size));
     }
     else{
@@ -238,16 +252,18 @@ void analyze(){
 
 int main(){
     analyze();
-    void * addr1,*addr2,*addr3,*addr4,*addr5,*addr6;
+    void * addr1,*addr2,*addr3,*addr4,*addr5,*addr6,*addr7;
 
     addr1 = myMalloc(54);
      addr2 = myMalloc(8168);
+     addr7 = myMalloc(24);
+     myFree((chunkinfo*)addr2);
+     analyze();
      addr3 = myMalloc(346);
-
-    addr4 = myMalloc(6348); 
-
-    addr5 = myMalloc(2345);
     analyze();
+    addr4 = myMalloc(43); 
+    analyze();
+    addr5 = myMalloc(2345);
     myFree((chunkinfo*)addr4);
     addr6 = myMalloc(9000);
     analyze();
