@@ -182,6 +182,37 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
     }
 }
 
+void myFree(chunkinfo *addrVal){ 
+    addrVal = addrVal-1;    //offset it to 24 bytes back!!
+    //collect info of prev and next node
+    chunkinfo *nextVal,*prevVal;
+    nextVal = (chunkinfo*)addrVal->next;
+    prevVal = (chunkinfo*)addrVal->prev;
+
+    if(addrVal==(chunkinfo*)EndOfHeap){  //if the last page on the mem, move the pgrm brk up
+        prevVal->next = NULL;   //since we are removing the last node out
+        sbrk(-(addrVal->size));
+    }
+    else{
+        if(nextVal->inuse==0 && prevVal->inuse==0){  //if prev and next pages are empty
+            prevVal->next = nextVal->next;
+            prevVal->size = (prevVal->size)+(addrVal->size)+(nextVal->size);
+        }
+        else if(prevVal->inuse==0){ //if only prev page is empty
+            prevVal->next = addrVal->next;
+            prevVal->size = (prevVal->size)+(addrVal->size);
+        }
+        else if(nextVal->inuse==0){   //if nextVal page is empty
+            addrVal->next = nextVal->next;
+            addrVal->inuse = 0;
+            addrVal->size = (addrVal->size)+(nextVal->size);
+        }
+        else{   //if previous and next page are not empty, then remove the current page
+            addrVal->inuse = 0;
+        }
+    }
+}
+
 
 void analyze(){
     printf("\n--------------------------------------------------------------\n");
@@ -207,19 +238,18 @@ void analyze(){
 
 int main(){
     analyze();
-    void * addr1,*addr2,*addr3,*addr4,*addr5;
+    void * addr1,*addr2,*addr3,*addr4,*addr5,*addr6;
 
     addr1 = myMalloc(54);
      addr2 = myMalloc(8168);
-     addr3 = myMalloc(8333);
+     addr3 = myMalloc(346);
 
     addr4 = myMalloc(6348); 
 
-     chunkinfo * s = (chunkinfo*)EndOfHeap;
-    s->inuse = 0;
-
     addr5 = myMalloc(2345);
-    myMalloc(5000);
+    analyze();
+    myFree((chunkinfo*)addr4);
+    addr6 = myMalloc(9000);
     analyze();
 
 
