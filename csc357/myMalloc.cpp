@@ -21,7 +21,6 @@ void * sizeChecker(int actualSize, BYTE * nextVal,BYTE * prevVal){
     BYTE *temp;
     int numPages;
     if(actualSize<=4096){
-        cout<<"we are here 1"<<endl;
             addr = sbrk(4096);
             //to store the info of the chunk in the dynamic allocated mem, have to typeCase it
             chunkinfo *ptr = (chunkinfo *)addr;
@@ -41,8 +40,6 @@ void * sizeChecker(int actualSize, BYTE * nextVal,BYTE * prevVal){
             return(addr);
         }
         else if((actualSize%4096)==0){
-
-            cout<<"we are here 2"<<endl;
             numPages = (actualSize/4096);
 
             addr = sbrk(4096*numPages);
@@ -64,7 +61,6 @@ void * sizeChecker(int actualSize, BYTE * nextVal,BYTE * prevVal){
             return(addr);
         }
         else{
-            cout<<"we are here 3!"<<endl;
             numPages = (actualSize/4096)+1;
 
             addr = sbrk(4096*numPages);
@@ -92,7 +88,19 @@ void * sizeChecker(int actualSize, BYTE * nextVal,BYTE * prevVal){
 void *myMalloc(int size){    //accepts the size of the memory to be allocated
     void *addr;
     BYTE * temp;
+    int pageSize =0;    //to calculate the page size
     int actualSize = size+ sizeof(chunkinfo);
+
+    if(actualSize<=4096){
+        pageSize = 4096;
+    }
+    else if(actualSize%(4096)==0){
+        pageSize = (4096)*(actualSize/4096);
+    }
+    else{
+        pageSize = (4096)*((actualSize/4096)+1);
+    }
+
     if(startOfHeap==NULL){  //if no heap then create the chunk requested by the user
         addr = sizeChecker(actualSize,NULL,NULL);
         //set the start,end of the heap to this chunk.
@@ -105,8 +113,22 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
         chunkinfo *curr = (chunkinfo *)startOfHeap;
 
         if(curr->inuse != 1 && actualSize <= curr->size){
-            curr->inuse = 1;
-            //curr->size = ?    //not sure what to do with the splitting, we'll see
+            if(pageSize==curr->size){
+                curr->inuse = 1;
+            }
+            else{   //split the unused space into the required peices
+                curr->inuse = 1;
+                temp = (BYTE*)curr->next;   //storing the current next node val
+                curr->next = (BYTE*)curr+(pageSize); //offset it to the unused chunk
+                //set the next chunk info
+                chunkinfo *splitNode = (chunkinfo*)curr->next;
+                splitNode->next = temp;
+                splitNode->prev = (BYTE*)curr;
+                splitNode->inuse = 0;
+                splitNode->size = curr->size-pageSize;
+                //now setting the curr size to pageSize
+                curr->size = pageSize;
+            }
             addr = (void *)curr;
 
             //to offset to actual data:
@@ -120,8 +142,22 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
             while(curr->next !=NULL){
                 curr = (chunkinfo*)curr->next;
                     if(curr->inuse != 1 && actualSize <= curr->size){
-                        curr->inuse = 1;
-                        //curr->size = ?    //not sure what to do with the splitting, we'll see
+                        if(pageSize==curr->size){
+                            curr->inuse = 1;
+                        }
+                        else{   //split the unused space into the required peices
+                            curr->inuse = 1;
+                            temp = (BYTE*)curr->next;   //storing the current next node val
+                            curr->next = (BYTE*)curr+(pageSize); //offset it to the unused chunk
+                            //set the next chunk info
+                            chunkinfo *splitNode = (chunkinfo*)curr->next;
+                            splitNode->next = temp;
+                            splitNode->inuse = 0;
+                            splitNode->prev = (BYTE*)curr;
+                            splitNode->size = curr->size-pageSize;
+                            //now setting the curr size to pageSize
+                            curr->size = pageSize;
+                        }
                         addr = (void *)curr;
 
                         //to offset to actual data:
@@ -171,13 +207,19 @@ void analyze(){
 
 int main(){
     analyze();
-    void * addr1,*addr2,*addr3,*addr4;
+    void * addr1,*addr2,*addr3,*addr4,*addr5;
 
     addr1 = myMalloc(54);
      addr2 = myMalloc(8168);
      addr3 = myMalloc(8333);
 
-    addr4 = myMalloc(2348); 
+    addr4 = myMalloc(6348); 
+
+     chunkinfo * s = (chunkinfo*)EndOfHeap;
+    s->inuse = 0;
+
+    addr5 = myMalloc(2345);
+    myMalloc(5000);
     analyze();
 
 
