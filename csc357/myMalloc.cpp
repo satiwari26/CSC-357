@@ -225,9 +225,20 @@ void myFree(void *inputVal){
 
     addrVal = addrVal-1;    //offset it to 24 bytes back!!
     //collect info of prev and next node
-    chunkinfo *nextVal,*prevVal;
+    chunkinfo *nextVal,*prevVal,*nextNextVal;
     nextVal = (chunkinfo*)addrVal->next;
     prevVal = (chunkinfo*)addrVal->prev;
+    if(addrVal->next !=NULL){
+        if(nextVal->next !=NULL){
+        nextNextVal = (chunkinfo*)nextVal->next;
+        }
+        else{
+        nextNextVal = NULL;
+        }
+    }
+    else{
+        nextNextVal = NULL;
+    }
 
     if(addrVal==(chunkinfo*)EndOfHeap){  //if the last page on the mem, move the pgrm brk up
 
@@ -253,14 +264,21 @@ void myFree(void *inputVal){
 
         if(nextVal->inuse==0 && prevVal->inuse==0){  //if prev and next pages are empty
             prevVal->next = nextVal->next;
+            if(nextNextVal !=NULL){
+            nextNextVal->prev = addrVal->prev;
+            }
             prevVal->size = (prevVal->size)+(addrVal->size)+(nextVal->size);
         }
         else if(prevVal->inuse==0){ //if only prev page is empty
             prevVal->next = addrVal->next;
+            nextVal->prev = addrVal->prev;
             prevVal->size = (prevVal->size)+(addrVal->size);
         }
         else if(nextVal->inuse==0){   //if nextVal page is empty
             addrVal->next = nextVal->next;
+            if(nextNextVal !=NULL){
+            nextNextVal->prev = (BYTE*)addrVal;
+            }
             addrVal->inuse = 0;
             addrVal->size = (addrVal->size)+(nextVal->size);
         }
@@ -297,6 +315,7 @@ void timedTest()
     clock_t ca, cb;
     auto average = 0;
     auto iterations = 1000;
+    auto duration_microseconds = 0;
     for (int i = 0; i < iterations; i++)
     {
         ca = clock();
@@ -311,46 +330,33 @@ void timedTest()
             myFree(a[i]);
 
         cb = clock();
-        double duration_microseconds = ((double)(cb - ca)) / CLOCKS_PER_SEC *1000000;
+        duration_microseconds = ((double)(cb - ca)) / CLOCKS_PER_SEC *1000000;
         average += duration_microseconds;
     }
     printf("\nAverage duration: %f microseconds\n", (double)(average) / iterations);
     // printf("\nduration: %f microseconds\n", (double)(cb - ca));
 }
 
+void bestFitSplitTest()
+{
+    void *a[100];
+    a[0] = myMalloc(4090);
+    a[1] = myMalloc(8180);
+    a[2] = myMalloc(4090);
+    a[3] = myMalloc(4090);
+    a[4] = myMalloc(4090);
+    analyze();
+    myFree(a[1]);
+    analyze();
+    myFree(a[3]);
+    analyze();
+    a[4] = myMalloc(1000);
+    analyze();
+}
 
 int main(){
 
-
-    analyze();
-    // void * a[100];
-
-    // addr1 = myMalloc(54);
-    //  addr2 = myMalloc(8168);
-    //  addr7 = myMalloc(24);
-    //  myFree(addr2);
-    //  analyze();
-    //  addr3 = myMalloc(346);
-    // addr4 = myMalloc(43); 
-    // addr5 = myMalloc(2345);
-    // analyze();
-    // myFree(addr2);
-    // myFree(addr1);
-    // addr6 = myMalloc(9000);
-    // analyze();
-
-    // a[0] = myMalloc(4090);
-    // a[1] = myMalloc(8180);
-    // a[2] = myMalloc(4090);
-    // a[3] = myMalloc(4090);
-    // a[4] = myMalloc(4090);
-    // analyze();
-    // myFree(a[1]);
-    // analyze();
-    // myFree(a[3]);
-    // analyze();
-    // a[4] = myMalloc(1000);
-    // analyze();
+    bestFitSplitTest();
 
     // void*a[100];
     // clock_t ca, cb;
@@ -366,7 +372,7 @@ int main(){
     // cb = clock();
     // printf("\nduration: % f\n", (double)(cb - ca));
 
-    timedTest();
+    //timedTest();
 
     return 0;
 }
