@@ -83,6 +83,21 @@ void * sizeChecker(int actualSize, BYTE * nextVal,BYTE * prevVal){
         }
 }
 
+void splitPages(chunkinfo *curr, int pageSize){ //splits the page
+    BYTE * temp;
+    temp = (BYTE*)curr->next;   //storing the current next node val
+    curr->next = (BYTE*)curr+(pageSize); //offset it to the unused chunk
+    curr->inuse = 1;
+    //set the next chunk info
+    chunkinfo *splitNode = (chunkinfo*)curr->next;
+    splitNode->next = temp;
+    splitNode->prev = (BYTE*)curr;
+    splitNode->inuse = 0;
+    splitNode->size = curr->size-pageSize;
+    //now setting the curr size to pageSize
+    curr->size = pageSize;
+}
+
 
 
 void *myMalloc(int size){    //accepts the size of the memory to be allocated
@@ -90,6 +105,8 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
     BYTE * temp;
     int pageSize =0;    //to calculate the page size
     int actualSize = size+ sizeof(chunkinfo);
+    
+    chunkinfo * suitableAddr = NULL;    //best page to store the requested data...
 
     if(actualSize<=4096){
         pageSize = 4096;
@@ -105,81 +122,97 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
         addr = sizeChecker(actualSize,NULL,NULL);
         //set the start,end of the heap to this chunk.
         temp = (BYTE*)addr - sizeof(chunkinfo); //for startOfHeap and EndOfHeap we need to offset it to headerInfo
-        startOfHeap = temp;
-        EndOfHeap = temp;
+        startOfHeap = (void *)temp;
+        EndOfHeap = (void *)temp;
         return addr;
     }
     else{   //if heap is present then
         chunkinfo *curr = (chunkinfo *)startOfHeap;
 
-        if(curr->inuse != 1 && actualSize <= curr->size){
-            if(pageSize==curr->size){
-                curr->inuse = 1;
-            }
-            else{   //split the unused space into the required peices
-                curr->inuse = 1;
-                temp = (BYTE*)curr->next;   //storing the current next node val
-                curr->next = (BYTE*)curr+(pageSize); //offset it to the unused chunk
-                //set the next chunk info
-                chunkinfo *splitNode = (chunkinfo*)curr->next;
-                splitNode->next = temp;
-                splitNode->prev = (BYTE*)curr;
-                splitNode->inuse = 0;
-                splitNode->size = curr->size-pageSize;
-                //now setting the curr size to pageSize
-                curr->size = pageSize;
-            }
-            addr = (void *)curr;
+        // if(curr->inuse != 1 && actualSize <= curr->size){
+        //     if(pageSize==curr->size){
+        //         curr->inuse = 1;
+        //     }
+        //     else{   //split the unused space into the required peices
+        //         curr->inuse = 1;
+        //         temp = (BYTE*)curr->next;   //storing the current next node val
+        //         curr->next = (BYTE*)curr+(pageSize); //offset it to the unused chunk
+        //         //set the next chunk info
+        //         chunkinfo *splitNode = (chunkinfo*)curr->next;
+        //         splitNode->next = temp;
+        //         splitNode->prev = (BYTE*)curr;
+        //         splitNode->inuse = 0;
+        //         splitNode->size = curr->size-pageSize;
+        //         //now setting the curr size to pageSize
+        //         curr->size = pageSize;
+        //     }
+        //     addr = (void *)curr;
 
-            //to offset to actual data:
+        //     //to offset to actual data:
             
-            temp = (BYTE *)addr + sizeof(chunkinfo);
-            addr = (void*)temp;
+        //     temp = (BYTE *)addr + sizeof(chunkinfo);
+        //     addr = (void*)temp;
 
-            return(addr);
-        }
-        else{
-            while(curr->next !=NULL){
-                curr = (chunkinfo*)curr->next;
-                    if(curr->inuse != 1 && actualSize <= curr->size){
-                        if(pageSize==curr->size){
+        //     return(addr);
+        // }
+        
+            while(curr != NULL){
+                    if(curr->inuse != 1 && pageSize <= curr->size){
+                        if(pageSize==curr->size){   //if exactly equal and not in use
                             curr->inuse = 1;
-                        }
-                        else{   //split the unused space into the required peices
-                            curr->inuse = 1;
-                            temp = (BYTE*)curr->next;   //storing the current next node val
-                            curr->next = (BYTE*)curr+(pageSize); //offset it to the unused chunk
-                            //set the next chunk info
-                            chunkinfo *splitNode = (chunkinfo*)curr->next;
-                            splitNode->next = temp;
-                            splitNode->inuse = 0;
-                            splitNode->prev = (BYTE*)curr;
-                            splitNode->size = curr->size-pageSize;
-                            //now setting the curr size to pageSize
-                            curr->size = pageSize;
-                        }
-                        addr = (void *)curr;
 
-                        //to offset to actual data:
-                        
-                        temp = (BYTE *)addr + sizeof(chunkinfo);
-                        addr = (void*)temp;
+                            // addr = (void *)curr;
+                            // //to offset to actual data:
+                            // temp = (BYTE *)addr + sizeof(chunkinfo);
+                            // addr = (void*)temp;
 
-                        return(addr);
-                        break;
+                            // return(addr);
+                            suitableAddr = curr;
+                             break;
+                        }
+                        else{   
+                            if(suitableAddr == NULL){
+                                suitableAddr = curr;
+                            }
+                            else if(curr->size<suitableAddr->size){
+                                suitableAddr = curr;
+                            }
+                        }
+                    }
+                    temp = (BYTE*)curr;
+                    curr = (chunkinfo*)curr->next;  //move to the next page
                 }
-            }
+            
+            if(suitableAddr == NULL){
             //if we traverse through the whole list and still did not find any page to insert, then create new node at the end
-            addr = sizeChecker(actualSize,NULL,(BYTE*)curr); //allocate new mem at the end of the page
-            curr->next = (BYTE*)addr-sizeof(chunkinfo);   //set the last page next add to new allocated mem
+            addr = sizeChecker(actualSize,NULL,temp); //allocate new mem at the end of the page
+            suitableAddr = (chunkinfo*)temp;
+            suitableAddr->next = (BYTE*)addr-sizeof(chunkinfo);   //set the last page next add to new allocated mem
 
             temp = (BYTE*)addr - sizeof(chunkinfo); //for startOfHeap and EndOfHeap we need to offset it to headerInfo
 
             EndOfHeap = temp;
             return addr;
-        }
-    
-    }
+            }
+            else{
+                if(suitableAddr->size == pageSize){
+                    addr = (void *)suitableAddr;
+                    //to offset to actual data:
+                    temp = (BYTE *)addr + sizeof(chunkinfo);
+                    addr = (void*)temp;
+
+                    return(addr);
+                }
+                splitPages(suitableAddr,pageSize);
+
+                addr = (void *)suitableAddr;
+                    //to offset to actual data:
+                    temp = (BYTE *)addr + sizeof(chunkinfo);
+                    addr = (void*)temp;
+
+                    return(addr);
+            }
+    }   
 }
 
 void myFree(void *inputVal){ 
@@ -258,25 +291,82 @@ void analyze(){
     printf("program break on address: %x\n",sbrk(0));
 }
 
+void timedTest()
+{
+    void *a[100];
+    clock_t ca, cb;
+    auto average = 0;
+    auto iterations = 1000;
+    for (int i = 0; i < iterations; i++)
+    {
+        ca = clock();
+
+        for (int i = 0; i < 100; i++)
+            a[i] = myMalloc(1000);
+        for (int i = 0; i < 90; i++)
+            myFree(a[i]);
+        myFree(a[95]);
+        a[95] = myMalloc(100);
+        for (int i = 90; i < 100; i++)
+            myFree(a[i]);
+
+        cb = clock();
+        double duration_microseconds = ((double)(cb - ca)) / CLOCKS_PER_SEC *1000000;
+        average += duration_microseconds;
+    }
+    printf("\nAverage duration: %f microseconds\n", (double)(average) / iterations);
+    // printf("\nduration: %f microseconds\n", (double)(cb - ca));
+}
 
 
 int main(){
-    analyze();
-    void * addr1,*addr2,*addr3,*addr4,*addr5,*addr6,*addr7;
-
-    addr1 = myMalloc(54);
-     addr2 = myMalloc(8168);
-     addr7 = myMalloc(24);
-     addr3 = myMalloc(346);
-    addr4 = myMalloc(43); 
-    addr5 = myMalloc(2345);
-    analyze();
-    myFree(addr2);
-    myFree(addr1);
-    addr6 = myMalloc(9000);
-    analyze();
 
 
+    analyze();
+    // void * a[100];
+
+    // addr1 = myMalloc(54);
+    //  addr2 = myMalloc(8168);
+    //  addr7 = myMalloc(24);
+    //  myFree(addr2);
+    //  analyze();
+    //  addr3 = myMalloc(346);
+    // addr4 = myMalloc(43); 
+    // addr5 = myMalloc(2345);
+    // analyze();
+    // myFree(addr2);
+    // myFree(addr1);
+    // addr6 = myMalloc(9000);
+    // analyze();
+
+    // a[0] = myMalloc(4090);
+    // a[1] = myMalloc(8180);
+    // a[2] = myMalloc(4090);
+    // a[3] = myMalloc(4090);
+    // a[4] = myMalloc(4090);
+    // analyze();
+    // myFree(a[1]);
+    // analyze();
+    // myFree(a[3]);
+    // analyze();
+    // a[4] = myMalloc(1000);
+    // analyze();
+
+    // void*a[100];
+    // clock_t ca, cb;
+    // ca = clock();
+    // for(int i=0;i<100;i++)
+    // a[i]= myMalloc(1000);
+    // for(int i=0;i<90;i++)
+    // myFree(a[i]);
+    // myFree(a[95]);
+    // a[95] = myMalloc(1000);
+    // for(int i=90;i<100;i++)
+    // myFree(a[i]);
+    // cb = clock();
+    // printf("\nduration: % f\n", (double)(cb - ca));
+
+    timedTest();
 
     return 0;
 }
