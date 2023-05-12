@@ -96,6 +96,9 @@ void splitPages(chunkinfo *curr, int pageSize){ //splits the page
     splitNode->size = curr->size-pageSize;
     //now setting the curr size to pageSize
     curr->size = pageSize;
+    //update the next page prev to new split page
+    curr = (chunkinfo*)splitNode->next;
+    curr->prev = (BYTE*)splitNode;
 }
 
 
@@ -128,33 +131,6 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
     }
     else{   //if heap is present then
         chunkinfo *curr = (chunkinfo *)startOfHeap;
-
-        // if(curr->inuse != 1 && actualSize <= curr->size){
-        //     if(pageSize==curr->size){
-        //         curr->inuse = 1;
-        //     }
-        //     else{   //split the unused space into the required peices
-        //         curr->inuse = 1;
-        //         temp = (BYTE*)curr->next;   //storing the current next node val
-        //         curr->next = (BYTE*)curr+(pageSize); //offset it to the unused chunk
-        //         //set the next chunk info
-        //         chunkinfo *splitNode = (chunkinfo*)curr->next;
-        //         splitNode->next = temp;
-        //         splitNode->prev = (BYTE*)curr;
-        //         splitNode->inuse = 0;
-        //         splitNode->size = curr->size-pageSize;
-        //         //now setting the curr size to pageSize
-        //         curr->size = pageSize;
-        //     }
-        //     addr = (void *)curr;
-
-        //     //to offset to actual data:
-            
-        //     temp = (BYTE *)addr + sizeof(chunkinfo);
-        //     addr = (void*)temp;
-
-        //     return(addr);
-        // }
         
             while(curr != NULL){
                     if(curr->inuse != 1 && pageSize <= curr->size){
@@ -315,7 +291,7 @@ void timedTest()
     clock_t ca, cb;
     auto average = 0;
     auto iterations = 1000;
-    auto duration_microseconds = 0;
+    double duration_microseconds = 0;
     for (int i = 0; i < iterations; i++)
     {
         ca = clock();
@@ -350,13 +326,28 @@ void bestFitSplitTest()
     analyze();
     myFree(a[3]);
     analyze();
-    a[4] = myMalloc(1000);
+    a[5] = myMalloc(1000);
+    analyze();
+    a[6] = myMalloc(1000);
+    analyze();
+    myFree(a[4]);
     analyze();
 }
 
 int main(){
 
     bestFitSplitTest();
+
+    // void * a[20];
+    // for(int i=0;i<10;i++){
+    //     a[i] = myMalloc(100);
+    // }
+    // analyze();
+
+    // for(int j=0;j<10;j++){
+    //     myFree(a[j]);
+    //     analyze();
+    // }
 
     // void*a[100];
     // clock_t ca, cb;
@@ -370,9 +361,9 @@ int main(){
     // for(int i=90;i<100;i++)
     // myFree(a[i]);
     // cb = clock();
-    // printf("\nduration: % f\n", (double)(cb - ca));
+    // printf("\nduration: % f\n", ((double)(cb - ca))/ CLOCKS_PER_SEC *1000000);
 
-    //timedTest();
+    // //timedTest();
 
     return 0;
 }
