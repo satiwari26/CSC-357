@@ -103,7 +103,7 @@ void splitPages(chunkinfo *curr, int pageSize){ //splits the page
 
 
 
-void *myMalloc(int size){    //accepts the size of the memory to be allocated
+BYTE *myMalloc(int size){    //accepts the size of the memory to be allocated
     void *addr;
     BYTE * temp;
     int pageSize =0;    //to calculate the page size
@@ -127,7 +127,7 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
         temp = (BYTE*)addr - sizeof(chunkinfo); //for startOfHeap and EndOfHeap we need to offset it to headerInfo
         startOfHeap = (void *)temp;
         EndOfHeap = (void *)temp;
-        return addr;
+        return (BYTE*)addr;
     }
     else{   //if heap is present then
         chunkinfo *curr = (chunkinfo *)startOfHeap;
@@ -137,12 +137,6 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
                         if(pageSize==curr->size){   //if exactly equal and not in use
                             curr->inuse = 1;
 
-                            // addr = (void *)curr;
-                            // //to offset to actual data:
-                            // temp = (BYTE *)addr + sizeof(chunkinfo);
-                            // addr = (void*)temp;
-
-                            // return(addr);
                             suitableAddr = curr;
                              break;
                         }
@@ -168,7 +162,7 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
             temp = (BYTE*)addr - sizeof(chunkinfo); //for startOfHeap and EndOfHeap we need to offset it to headerInfo
 
             EndOfHeap = temp;
-            return addr;
+            return (BYTE*)addr;
             }
             else{
                 if(suitableAddr->size == pageSize){
@@ -177,7 +171,7 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
                     temp = (BYTE *)addr + sizeof(chunkinfo);
                     addr = (void*)temp;
 
-                    return(addr);
+                    return((BYTE*)addr);
                 }
                 splitPages(suitableAddr,pageSize);
 
@@ -186,7 +180,7 @@ void *myMalloc(int size){    //accepts the size of the memory to be allocated
                     temp = (BYTE *)addr + sizeof(chunkinfo);
                     addr = (void*)temp;
 
-                    return(addr);
+                    return((BYTE*)addr);
             }
     }   
 }
@@ -217,6 +211,13 @@ void myFree(void *inputVal){
     }
 
     if(addrVal==(chunkinfo*)EndOfHeap){  //if the last page on the mem, move the pgrm brk up
+
+
+        if(prevVal != NULL && prevVal->inuse==0){ //if only prev page is empty
+            prevVal->next = addrVal->next;
+            prevVal->size = (prevVal->size)+(addrVal->size);
+            addrVal = prevVal;
+        }
 
         if(addrVal !=(chunkinfo*)startOfHeap){  //make sure that it is not the first element that we are removing
         prevVal->next = NULL;   //since we are removing the last node out
@@ -287,7 +288,7 @@ void analyze(){
 
 void timedTest()
 {
-    void *a[100];
+    BYTE *a[100];
     clock_t ca, cb;
     auto average = 0;
     auto iterations = 1000;
@@ -315,7 +316,7 @@ void timedTest()
 
 void bestFitSplitTest()
 {
-    void *a[100];
+    BYTE *a[100];
     a[0] = myMalloc(4090);
     a[1] = myMalloc(8180);
     a[2] = myMalloc(4090);
@@ -336,9 +337,9 @@ void bestFitSplitTest()
 
 int main(){
 
-    bestFitSplitTest();
+    //bestFitSplitTest();
 
-    // void * a[20];
+    // BYTE * a[20];
     // for(int i=0;i<10;i++){
     //     a[i] = myMalloc(100);
     // }
@@ -349,7 +350,8 @@ int main(){
     //     analyze();
     // }
 
-    // void*a[100];
+
+    // BYTE*a[100];
     // clock_t ca, cb;
     // ca = clock();
     // for(int i=0;i<100;i++)
@@ -363,7 +365,7 @@ int main(){
     // cb = clock();
     // printf("\nduration: % f\n", ((double)(cb - ca))/ CLOCKS_PER_SEC *1000000);
 
-    // //timedTest();
+    timedTest();
 
     return 0;
 }
