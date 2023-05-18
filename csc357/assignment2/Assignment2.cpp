@@ -34,7 +34,7 @@ DWORD biClrUsed; //number of colors used by th ebitmap
 DWORD biClrImportant; //number of colors that are important
 };
 
-float UserRatio = 0.6;    //user defined ration, how much do we want to blend the image
+float UserRatio = 0;    //user defined ration, how much do we want to blend the image
 
 unsigned char get_color(unsigned char * colorVal, int x, int y, int imagewidth, int imageHeight, int offsetVal){
     unsigned char interPolatedVal;
@@ -48,9 +48,16 @@ unsigned char get_color(unsigned char * colorVal, int x, int y, int imagewidth, 
     return(interPolatedVal);
 }
 
-int main(){
+int main(int argc,char ** argv){
 
-    FILE *imageFileLarge = fopen("wolf.bmp", "rb");   //open the large file to read the content
+    if(argc !=6){
+        printf("%s \n", "not the right number of arguments, try again");
+        return 0;
+    }
+
+    UserRatio = (float)atof(argv[4]);
+
+    FILE *imageFileLarge = fopen(argv[2], "rb");   //open the large file to read the content
 
     //checking weather the file is open or not
     if(imageFileLarge ==NULL){
@@ -116,7 +123,7 @@ int main(){
 
     //******************************************************************************************//
 
-    FILE *imageFileSmall = fopen("flowers.bmp", "rb");   //open the smaller file to read the content
+    FILE *imageFileSmall = fopen(argv[3], "rb");   //open the smaller file to read the content
 
      //checking weather the file is open or not
     if(imageFileSmall ==NULL){
@@ -182,7 +189,7 @@ int main(){
 
     //creating high rez lion image now!! using interpolation
 
-    FILE *aFile = fopen("HighRezLion.bmp", "wb");   //open the file to write the content
+    FILE *aFile = fopen(argv[5], "wb");   //open the file to write the content
 
     //checking weather the file is open or not
     if(aFile ==NULL){
