@@ -24,6 +24,7 @@ int main(){
             break;
         }
         else{
+          sleep(1);
             if(strcmp(p,"quit")==0){
                 break;
             }
