@@ -14,6 +14,6 @@ int main(){
 
      printf("%s \n",*p);
       //printf("%s \n",*(p+1));
-
+  //changing something here to make it work
     return 0;
 }
