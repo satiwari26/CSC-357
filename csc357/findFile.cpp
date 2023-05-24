@@ -61,9 +61,9 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result)
             int resp = stat(tempStore,&statinfo);
             char *dirTell;
             if(resp==0){
-                dirTell = dirType(statinfo);
+                // dirTell = dirType(statinfo);
             
-                cout<<dirTell<<endl;
+                // cout<<dirTell<<endl;
                 if(strcmp(fileName,entry->d_name)==0){
                     result[0] = '0';
                     result = strcat(startDir,"/");
@@ -119,12 +119,12 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result)
                     }
                 }
 
-                if(fileFound == 1){ //break out of the recursion
-                    free(tempStartDir);
-                    free(tempStore);
-                    closedir(dir); //close the current open directory
-                    return fileFound;
-                }
+                // if(fileFound == 1){ //break out of the recursion
+                //     free(tempStartDir);
+                //     free(tempStore);
+                //     closedir(dir); //close the current open directory
+                //     return fileFound;
+                // }
             
                 // cout<<dirTell<<endl;
                 if(strcmp(fileName,entry->d_name)==0){
@@ -133,11 +133,11 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result)
                     result = strcat(tempStartDir,"/");
                     result = strcat(result,fileName);
                     cout<<result<<endl;
-                    fileFound = 1;
-                    free(tempStore);
-                    free(tempStartDir);
-                    closedir(dir); //close the current open directory
-                    return fileFound;
+                    // fileFound = 1;
+                    // free(tempStore);
+                    // free(tempStartDir);
+                    // closedir(dir); //close the current open directory
+                    // return fileFound;
                     // break;
                 }
             }
@@ -153,8 +153,8 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result)
 int main(){
 
     char result[1000];
-    char fileName[1000] = "singleLinkedList.cpp";
-    char startDir[1000] = "/";
+    char fileName[1000] = "sub.txt";
+    char startDir[5000] = "/";
 
     findFile(1,startDir,fileName,result);
 
