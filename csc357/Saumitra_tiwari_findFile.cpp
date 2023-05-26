@@ -20,7 +20,8 @@ int fd[2]; //pipline file ends, for reading and writing the files
 int ParentHandlerFlag = 0; //flag to check if the signal was received successfully or not
 
 int save_stdin = dup(STDIN_FILENO); //save the stdin
-
+char constDirPath[5000];   //const starting DIR path
+char *combinedResult = new char[10*5000];  //a array that would hold multiple files path that are found
 
 char *dirType(struct stat statinfo){
     char *type = new char[100];
@@ -38,11 +39,12 @@ char *dirType(struct stat statinfo){
 } 
 
 
-bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,int parentPID){
+bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,int parentPID,int offsetVal){
     bool fileFound = false; //flag that specify if the file is found or not
+    bool tempFileFound = false; //flag that specify if the recursive file is found or not
     DIR *dir;
-    // char workdir[1000];
-    // getcwd(workdir,1000);
+    // char workdir[5000];
+    // getcwd(workdir,5000);
     struct stat statinfo;
     struct dirent *entry;
     if(toBeSearchedIn ==0){ //search in the current dir
@@ -75,7 +77,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
                     
                     cout<<result<<endl;
 
-                    write(fd[1],result,1000);  //passing data through the pipe
+                    write(fd[1],result,5000);  //passing data through the pipe
                     // kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
                     
 
@@ -121,12 +123,16 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
             if(resp==0){
                 dirTell = dirType(statinfo);
                 if(strcmp(dirTell,"directory")==0){
-                    if(strcmp(entry->d_name,".")!=0 && strcmp(entry->d_name,"..")!=0 && strcmp(entry->d_name,"proc")!=0 && strcmp(entry->d_name,"dev")!=0 && strcmp(entry->d_name,"sys")!=0){  //rrxclude current and parent directory
+                    if(strcmp(entry->d_name,".")!=0 && strcmp(entry->d_name,"..")!=0){  //rrxclude current and parent directory
                         strcpy(tempStartDir,startDir);
                         tempStartDir = strcat(tempStartDir,"/");
                         tempStartDir = strcat(tempStartDir,entry->d_name); //create new start dir path for recursive function.
 
-                        fileFound = findFile(1,tempStartDir,fileName,result,parentPID);  //recurisvely calling the function to look inside the dir until the file is found
+                        tempFileFound = findFile(1,tempStartDir,fileName,result,parentPID, offsetVal);  //recurisvely calling the function to look inside the dir until the file is found
+                        
+                        if(tempFileFound ==1){  //only make changes to original fileFound if file is found.
+                            fileFound = tempFileFound;
+                        }
                     }
                 }
 
@@ -140,13 +146,14 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
                 // cout<<dirTell<<endl;
                 if(strcmp(fileName,entry->d_name)==0){
                     strcpy(tempStartDir,startDir);
-                    result[0] = '0';
                     result = strcat(tempStartDir,"/");
                     result = strcat(result,fileName);
-
-                    write(fd[1],result,1000);  //passing data through the pipe
+                    result = strcat(result,"\n");
+                    strcat(((offsetVal*5000)+combinedResult),result);  //grouping multiple paths together
+                    cout<<result;
+                    // write(fd[1],result,5000);  //passing data through the pipe
                     // kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
-
+                    fileFound = 1;  //set the file found to be 1
 
                     // cout<<result<<endl;
                     // fileFound = 1;
@@ -162,21 +169,30 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
         free(tempStore);
         free(tempStartDir);
     }
+    if(strcmp(startDir,constDirPath)==0){   //so when the original dir func ends
+        cout<<((offsetVal*5000)+combinedResult);
+        write(fd[1],((offsetVal*5000)+combinedResult),5000);  //passing data through the pipe
+        *((offsetVal*5000)+combinedResult) = '\0';   //free the array again.
+    }
     return fileFound;
 }
 
 //forking inside the function so that multiple times it can be called
 
-void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn,char * startDir, char * fileName,char *result){
+void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn,char * startDir, char * fileName){
     if(fork()==0){
+        char result[5000];
+        result[0] = '\0';
         close(fd[0]);   //writing through the pipe from the child
         // *(childPID + offsetVal) = getpid();
         bool fileFound =0;
         
-        fileFound = findFile(toBeSearchedIn,startDir,fileName,result,parentPID);
+        fileFound = findFile(toBeSearchedIn,startDir,fileName,result,parentPID, offsetVal);
         if(fileFound ==0){
             cout<<"No File with this name found."<<endl;
             fileFound = 0;
+            ChildCount[offsetVal] = 0;  //set the offset value back to 0 (free to use again)
+            exit(0); //terminate the child right away.
         }
         // else{
         //     write(fd[1],result,sizeof(result));  //passing data through the pipe
@@ -201,7 +217,7 @@ void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn
 
 
 void signalhandlerParent(int sig){
-    // char result1[1000];
+    // char result1[5000];
     // result1[0] = '0';
     // close(fd[1]);   //no reading only writing
     // read(fd[0],result1,sizeof(result1));
@@ -216,10 +232,9 @@ void signalhandlerParent(int sig){
 
 int main(){
     //file names and starting dir
-    char result[1000];
-    char fileName[1000];
-    char startDir[5000] = "/home/chero/csc357";
-    int toBeSearchedIn = 0; //by default we are searching in the current directory only
+    char fileName[5000];
+    char startDir[5000] = "/home/chero";
+    int toBeSearchedIn = 1; //by default we are searching in the current directory only
 
     pipe(fd);
     fileName[0] = '\0';
@@ -238,11 +253,16 @@ int main(){
     
     signal(SIGUSR1,signalhandlerParent);  //redirecting the signal from the parent.
 
+    strcpy(constDirPath,startDir);  //save the const starting dir path
+
     //loop through continously to take input from the user
     while(true){
         // fgets(fileName,sizeof(fileName),stdin);
         read(STDIN_FILENO, fileName, sizeof(fileName));
+
+        if(ParentHandlerFlag ==0){  //if child sends the data don't change '\n'
         fileName[strcspn(fileName, "\n")] = 0;
+        }
 
         for(int i=0;i<10;i++){  //wait for each child process non-blocking
             waitpid(childPID[i],&childStatus[i],WNOHANG);
@@ -281,14 +301,14 @@ int main(){
                 cout<<"no processes are free"<<endl;
             }
             else{
-                 performFork(parentPID, childPID,offsetVal,toBeSearchedIn,startDir,fileName,result);
+                 performFork(parentPID, childPID,offsetVal,toBeSearchedIn,startDir,fileName);
             }
         }
         memset(fileName, 0, sizeof(fileName));
         foundChildflag = 0;
     }
     //close(fd[0]);   //close reading after the whole process is ended
-
+    free(combinedResult);
     return 0;
 }
 
