@@ -19,6 +19,8 @@ bool * ChildCount = (bool *)mmap(NULL,10*sizeof(bool),PROT_READ|PROT_WRITE,MAP_S
 int fd[2]; //pipline file ends, for reading and writing the files
 int ParentHandlerFlag = 0; //flag to check if the signal was received successfully or not
 
+int save_stdin = dup(STDIN_FILENO); //save the stdin
+
 
 char *dirType(struct stat statinfo){
     char *type = new char[100];
@@ -70,13 +72,13 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
                     result[0] = '0';
                     result = strcat(startDir,"/");
                     result = strcat(result,fileName);
+                    
                     cout<<result<<endl;
 
                     write(fd[1],result,1000);  //passing data through the pipe
-                    kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
+                    // kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
                     
 
-                    // cout<<result<<endl;
                     fileFound = 1;
                     free(tempStore);
                     closedir(dir);
@@ -119,7 +121,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
             if(resp==0){
                 dirTell = dirType(statinfo);
                 if(strcmp(dirTell,"directory")==0){
-                    if(strcmp(entry->d_name,".")!=0 && strcmp(entry->d_name,"..")!=0){  //rrxclude current and parent directory
+                    if(strcmp(entry->d_name,".")!=0 && strcmp(entry->d_name,"..")!=0 && strcmp(entry->d_name,"proc")!=0 && strcmp(entry->d_name,"dev")!=0 && strcmp(entry->d_name,"sys")!=0){  //rrxclude current and parent directory
                         strcpy(tempStartDir,startDir);
                         tempStartDir = strcat(tempStartDir,"/");
                         tempStartDir = strcat(tempStartDir,entry->d_name); //create new start dir path for recursive function.
@@ -143,7 +145,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
                     result = strcat(result,fileName);
 
                     write(fd[1],result,1000);  //passing data through the pipe
-                    kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
+                    // kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
 
 
                     // cout<<result<<endl;
@@ -168,7 +170,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
 void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn,char * startDir, char * fileName,char *result){
     if(fork()==0){
         close(fd[0]);   //writing through the pipe from the child
-        *(childPID + offsetVal) = getpid();
+        // *(childPID + offsetVal) = getpid();
         bool fileFound =0;
         
         fileFound = findFile(toBeSearchedIn,startDir,fileName,result,parentPID);
@@ -181,11 +183,20 @@ void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn
         //     kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
         //     close(fd[1]);
         // }
-         sleep(10);
+        sleep(10);
+
+        *(childPID + offsetVal) = getpid(); //get the pid at the end of the process
+        kill(parentPID,SIGUSR1); //pass the signal when it's almost done running
+
+        sleep(2); //add sleep of 2 sec for the reading end to finish reading properly
         close(fd[1]);   //closing write only when the child process is about to end
+
         ChildCount[offsetVal] = 0;  //set the offset value back to 0 (free to use again)
         exit(0); //child process terminates.
+        cout<<"checking if child is terminated or not"<<endl;
+        
     }
+    return;
 }
 
 
@@ -198,6 +209,7 @@ void signalhandlerParent(int sig){
     // cout<<result1<<endl;
     ParentHandlerFlag = 1;
     cout<<ParentHandlerFlag<<"inside the handler"<<endl;
+    dup2(fd[0], STDIN_FILENO); //rewriting stdin with other end of the pipe
     
 }
 
@@ -210,7 +222,7 @@ int main(){
     int toBeSearchedIn = 0; //by default we are searching in the current directory only
 
     pipe(fd);
-    fileName[0] = '0';
+    fileName[0] = '\0';
     bool foundChildflag = 0;  //to keep track if program found any availaible child process to be used
     int offsetVal = 0;
 
@@ -219,6 +231,8 @@ int main(){
     }
     int parentPID = getpid();   //pid of the parent
 
+    int childStatus[10];    //to store the status of each child 
+
     //shared mem that will keep track of the 10 childs pid, sequentially marked with ChildCount[i]
     int *childPID = (int *)mmap(NULL,10*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
     
@@ -226,12 +240,21 @@ int main(){
 
     //loop through continously to take input from the user
     while(true){
-        fgets(fileName,sizeof(fileName),stdin);
+        // fgets(fileName,sizeof(fileName),stdin);
+        read(STDIN_FILENO, fileName, sizeof(fileName));
         fileName[strcspn(fileName, "\n")] = 0;
 
-        cout<<ParentHandlerFlag<<"inside the main"<<endl;   //not sync with the handler
+        for(int i=0;i<10;i++){  //wait for each child process non-blocking
+            waitpid(childPID[i],&childStatus[i],WNOHANG);
+        }
+
+        cout<<ParentHandlerFlag<<"inside the main"<<endl;
         if(ParentHandlerFlag ==1){
+            dup2(save_stdin,STDIN_FILENO); //re-write the stdin again
+
             cout<<"signal send by child"<<endl;
+            cout<<fileName<<endl; //from stdin (result is now stored in fileName)
+            fileName[0] = '\0';
             ParentHandlerFlag = 0;  //set flag to false
         }
 
@@ -242,7 +265,7 @@ int main(){
             break;
             }
 
-        if(fileName[0] !='0'){
+        if(fileName[0] !='\0'){
             for(int i=0;i<5;i++){
                 if(ChildCount[i] != 1){
 
@@ -261,7 +284,7 @@ int main(){
                  performFork(parentPID, childPID,offsetVal,toBeSearchedIn,startDir,fileName,result);
             }
         }
-        fileName[0] = '0';
+        memset(fileName, 0, sizeof(fileName));
         foundChildflag = 0;
     }
     //close(fd[0]);   //close reading after the whole process is ended
