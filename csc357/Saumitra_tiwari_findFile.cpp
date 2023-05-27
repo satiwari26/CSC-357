@@ -75,7 +75,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
                     result = strcat(startDir,"/");
                     result = strcat(result,fileName);
                     
-                    cout<<result<<endl;
+                    // cout<<result<<endl;
 
                     write(fd[1],result,5000);  //passing data through the pipe
                     // kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
@@ -150,7 +150,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
                     result = strcat(result,fileName);
                     result = strcat(result,"\n");
                     strcat(((offsetVal*5000)+combinedResult),result);  //grouping multiple paths together
-                    cout<<result;
+                    // cout<<result;
                     // write(fd[1],result,5000);  //passing data through the pipe
                     // kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
                     fileFound = 1;  //set the file found to be 1
@@ -189,7 +189,12 @@ void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn
         
         fileFound = findFile(toBeSearchedIn,startDir,fileName,result,parentPID, offsetVal);
         if(fileFound ==0){
+            printf("\n");
             cout<<"No File with this name found."<<endl;
+
+            printf("findFile$ ");
+            fflush(stdout);
+
             fileFound = 0;
             ChildCount[offsetVal] = 0;  //set the offset value back to 0 (free to use again)
             exit(0); //terminate the child right away.
@@ -199,7 +204,7 @@ void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn
         //     kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
         //     close(fd[1]);
         // }
-        sleep(20);
+        // sleep(10);
 
         *(childPID + offsetVal) = getpid(); //get the pid at the end of the process
         kill(parentPID,SIGUSR1); //pass the signal when it's almost done running
@@ -242,10 +247,14 @@ void signalhandlerParent(int sig){
     // result1[0] = '0';
     // close(fd[1]);   //no reading only writing
     // read(fd[0],result1,sizeof(result1));
-     cout<<"Process interupted by Child"<<endl;
+
+    //  cout<<"Process interupted by Child"<<endl;
+
     // cout<<result1<<endl;
     ParentHandlerFlag = 1;
-    cout<<ParentHandlerFlag<<"inside the handler"<<endl;
+
+    // cout<<ParentHandlerFlag<<"inside the handler"<<endl;
+
     dup2(fd[0], STDIN_FILENO); //rewriting stdin with other end of the pipe
     
 }
@@ -259,7 +268,7 @@ int main(){
     bool proceedFlag = 0;   //to check if user input meets the requirement
 
     int temp =0; //store the temp return val from user
-    char startDir[5000] = "/home/chero";
+    char startDir[5000] = ".";
     int toBeSearchedIn = 1; //by default we are searching in the current directory only
 
     pipe(fd);
@@ -278,11 +287,13 @@ int main(){
     int *childPID = (int *)mmap(NULL,10*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
     
     signal(SIGUSR1,signalhandlerParent);  //redirecting the signal from the parent.
-
+    
 
     //loop through continously to take input from the user
     while(true){
         // fgets(fileName,sizeof(fileName),stdin);
+        printf("findFile$ ");
+        fflush(stdout); 
         read(STDIN_FILENO, fileName, sizeof(fileName));
 
         if(ParentHandlerFlag ==0){  //if child sends the data don't change '\n'
@@ -304,15 +315,21 @@ int main(){
                     parseChecker = parseChecker+temp;
                 }
                 if(parseChecker>3){
+                    printf("\n");
                     cout<<"not the right number of args. Please enter right number of arguments!"<<endl;
                 }
                 else if(parseChecker<2){
+                    printf("\n");
                     cout<<"not the right number of args. Please enter right number of arguments!"<<endl;
                 }
                 else{
                     parse(fileName,argument,0);
                      if(strcmp(argument,"find")==0){
                         proceedFlag = 1;
+                     }
+                     else{
+                        printf("\n");
+                        cout<<"not the right input"<<endl;
                      }
                 }
             }
@@ -324,12 +341,16 @@ int main(){
             waitpid(childPID[i],&childStatus[i],WNOHANG);
         }
 
-        cout<<ParentHandlerFlag<<"inside the main"<<endl;
+        // cout<<ParentHandlerFlag<<"inside the main"<<endl;
+
         if(ParentHandlerFlag ==1){
             dup2(save_stdin,STDIN_FILENO); //re-write the stdin again
 
-            cout<<"signal send by child"<<endl;
-            cout<<fileName<<endl; //from stdin (result is now stored in fileName)
+            // cout<<"signal send by child"<<endl;
+            printf("\n");
+            printf("%s\n", fileName);
+            // cout<<fileName<<endl; //from stdin (result is now stored in fileName)
+
             fileName[0] = '\0';
             argument[0] = '\0';
             ParentHandlerFlag = 0;  //set flag to false
@@ -354,10 +375,10 @@ int main(){
                 toBeSearchedIn = 1;
             }
 
-                for(int i=0;i<5;i++){
+                for(int i=0;i<10;i++){
                     if(ChildCount[i] != 1){
 
-                        cout<<ChildCount[i]<<" i: "<<i<<endl;
+                        // cout<<ChildCount[i]<<" i: "<<i<<endl;
 
                         ChildCount[i] = 1;
                         foundChildflag = 1;
@@ -366,6 +387,7 @@ int main(){
                     }
                 }
                 if(foundChildflag==0){
+                    printf("\n");
                     cout<<"no processes are free"<<endl;
                 }
                 else{
