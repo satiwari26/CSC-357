@@ -123,7 +123,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
             if(resp==0){
                 dirTell = dirType(statinfo);
                 if(strcmp(dirTell,"directory")==0){
-                    if(strcmp(entry->d_name,".")!=0 && strcmp(entry->d_name,"..")!=0 && strcmp(entry->d_name,"mnt")!=0 && strcmp(entry->d_name,"proc")!=0 && strcmp(entry->d_name,"dev")!=0 && strcmp(entry->d_name,"sys")!=0 && strcmp(entry->d_name,"Application Data")!=0){  //rrxclude current and parent directory
+                    if(strcmp(entry->d_name,".")!=0 && strcmp(entry->d_name,"..")!=0  && strcmp(entry->d_name,"proc")!=0 && strcmp(entry->d_name,"dev")!=0 && strcmp(entry->d_name,"sys")!=0 && strcmp(entry->d_name,"Application Data")!=0){  //rrxclude current and parent directory
                         strcpy(tempStartDir,startDir);
                         tempStartDir = strcat(tempStartDir,"/");
                         tempStartDir = strcat(tempStartDir,entry->d_name); //create new start dir path for recursive function.
@@ -150,18 +150,8 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
                     result = strcat(result,fileName);
                     result = strcat(result,"\n");
                     strcat(((offsetVal*5000)+combinedResult),result);  //grouping multiple paths together
-                    // cout<<result;
-                    // write(fd[1],result,5000);  //passing data through the pipe
-                    // kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
-                    fileFound = 1;  //set the file found to be 1
 
-                    // cout<<result<<endl;
-                    // fileFound = 1;
-                    // free(tempStore);
-                    // free(tempStartDir);
-                    // closedir(dir); //close the current open directory
-                    // return fileFound;
-                    // break;
+                    fileFound = 1;  //set the file found to be 1
                 }
             }
         }
@@ -169,7 +159,7 @@ bool findFile( int toBeSearchedIn,char * startDir, char * fileName,char *result,
         free(tempStore);
         free(tempStartDir);
     }
-    if(strcmp(startDir,constDirPath)==0){   //so when the original dir func ends
+    if(strcmp(startDir,constDirPath)==0 && fileFound ==1){   //so when the original dir func ends
         // cout<<((offsetVal*5000)+combinedResult);
         write(fd[1],((offsetVal*5000)+combinedResult),5000);  //passing data through the pipe
         *((offsetVal*5000)+combinedResult) = '\0';   //free the array again.
@@ -199,12 +189,6 @@ void performFork(int parentPID, int *childPID, int offsetVal, int toBeSearchedIn
             ChildCount[offsetVal] = 0;  //set the offset value back to 0 (free to use again)
             exit(0); //terminate the child right away.
         }
-        // else{
-        //     write(fd[1],result,sizeof(result));  //passing data through the pipe
-        //     kill(parentPID,SIGUSR1);    //passing the signal to parent to interrupt the process
-        //     close(fd[1]);
-        // }
-        // sleep(10);
 
         *(childPID + offsetVal) = getpid(); //get the pid at the end of the process
         kill(parentPID,SIGUSR1); //pass the signal when it's almost done running
@@ -243,17 +227,9 @@ int parse(char *userInput, char * arg, int c){  // to parse the input for the us
 
 
 void signalhandlerParent(int sig){
-    // char result1[5000];
-    // result1[0] = '0';
-    // close(fd[1]);   //no reading only writing
-    // read(fd[0],result1,sizeof(result1));
 
-    //  cout<<"Process interupted by Child"<<endl;
-
-    // cout<<result1<<endl;
     ParentHandlerFlag = 1;
 
-    // cout<<ParentHandlerFlag<<"inside the handler"<<endl;
 
     dup2(fd[0], STDIN_FILENO); //rewriting stdin with other end of the pipe
     
@@ -341,15 +317,13 @@ int main(){
             waitpid(childPID[i],&childStatus[i],WNOHANG);
         }
 
-        // cout<<ParentHandlerFlag<<"inside the main"<<endl;
 
         if(ParentHandlerFlag ==1){
             dup2(save_stdin,STDIN_FILENO); //re-write the stdin again
 
-            // cout<<"signal send by child"<<endl;
+
             printf("\n");
             printf("%s\n", fileName);
-            // cout<<fileName<<endl; //from stdin (result is now stored in fileName)
 
             fileName[0] = '\0';
             argument[0] = '\0';
