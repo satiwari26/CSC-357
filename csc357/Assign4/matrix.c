@@ -8,19 +8,16 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <stdbool.h>
 #define MATRIX_DIMENSION_XY 10
-
-
-
-//SEARCH FOR TODO
 
 
 //************************************************************************************************************************
 // sets one element of the matrix
 void set_matrix_elem(float *M,int x,int y,float f)
-{
-M[x + y*MATRIX_DIMENSION_XY] = f;
-}
+    {
+    M[x + y*MATRIX_DIMENSION_XY] = f;
+    }
 //************************************************************************************************************************
 // lets see it both are the same
 int quadratic_matrix_compare(float *A,float *B)
@@ -62,24 +59,52 @@ for(int a = 0;a<MATRIX_DIMENSION_XY;a++) // over all cols a
             }
 }
 
-void quadratic_matrix_multiplication_parallel(){
-    
+void quadratic_matrix_multiplication_parallel(int par_id, int par_count,float *A, float *B, float *C){
+        int row_distr = MATRIX_DIMENSION_XY/par_count;  //find the distribution to divide the rows between all childs equally
+        int start_pos = row_distr*par_id;   //decide the starting row 
+        int ending_pos = row_distr*par_id + row_distr; //decide the ending position of the row
+
+        if(par_id==par_count-1){    //in case if rows are not perfectly divisible by the childs
+            ending_pos = MATRIX_DIMENSION_XY;
+        }
+
+        for(int i=start_pos;i<ending_pos;i++){  //for testing only need to comeback to this later
+            for(int j=0;j<MATRIX_DIMENSION_XY;j++){
+                C[j + i*MATRIX_DIMENSION_XY] = par_id;
+            }
+        }
 }
 
 
 
 //************************************************************************************************************************
-void synch(int par_id,int par_count,int *ready)
+void synch(int par_id,int par_count,int *ready, int gatherVal)
 {
-//TODO: synch algorithm. make sure, ALL processes get stuck here until all ARE here
+    printf("we are here in sync! \n");
+    printf("%d \n",par_id);
+
+    // bool turnFlag = false;
+    ready[par_id] = ready[par_id]+1;  //set the current process
+
+    for(int i=0;i<par_count;i++){   //to gather all process
+        while(ready[i]<gatherVal){
+            //do nothing
+        }
+    }
+
+
+    printf("we are leaving! \n");
+
 }
 //************************************************************************************************************************
 int main(int argc, char *argv[])
 {
+    printf("running matrix prog \n");
 int par_id = 0; // the parallel ID of this process
 int par_count = 1; // the amount of processes
 float *A,*B,*C; //matrices A,B and C
 int *ready; //needed for synch
+
 if(argc!=3){printf("no shared\n");}
 else
     {
@@ -92,13 +117,14 @@ if(par_count==1){printf("only one process\n");}
 int fd[4];
 if(par_id==0)
     {
-    //TODO: init the shared memory for A,B,C, ready. shm_open with C_CREAT here! then ftruncate! then mmap
         //if first child process
         fd[0] = shm_open("matrixA",O_RDWR|O_CREAT,0777);
         fd[1] = shm_open("matrixB",O_RDWR|O_CREAT,0777);
         fd[2] = shm_open("matrixC",O_RDWR|O_CREAT,0777);
+        fd[3] = shm_open("syncObject",O_RDWR|O_CREAT,0777);
 
-        //will comeback to the "syncObject"
+        ftruncate(fd[3],par_count*sizeof(int));
+        ready = (int *)mmap(NULL,par_count*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[3],0);   //to keep track of all the processes status
         
         ftruncate(fd[0],100*sizeof(float)); //allocate 10*10 size of the memory for all the matrixes
         ftruncate(fd[1],100*sizeof(float));
@@ -106,33 +132,33 @@ if(par_id==0)
         A = (float*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[0],0); //allocate memory for sharing
         B = (float*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[1],0);
         C = (float*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[2],0);
+
+        for(int i=0;i<par_count;i++){
+        ready[i] = 0;   //initialize ready to 0 for all the processes
+        }
     }
 else
     {
-	//TODO: init the shared memory for A,B,C, ready. shm_open withOUT C_CREAT here! NO ftruncate! but yes to mmap
         sleep(2); //needed for initalizing synch
 
         //if other child process will open it only for the reading
         fd[0] = shm_open("matrixA",O_RDWR,0777);
         fd[1] = shm_open("matrixB",O_RDWR,0777);
         fd[2] = shm_open("matrixC",O_RDWR,0777);
+        fd[3] = shm_open("syncObject",O_RDWR,0777);
 
-        //will comeback to the "syncObject"
+        ready = (int *)mmap(NULL,par_count*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[3],0);   //to keep track of all the processes status
         
-        ftruncate(fd[0],100*sizeof(float)); //allocate 10*10 size of the memory for all the matrixes
-        ftruncate(fd[1],100*sizeof(float));
-        ftruncate(fd[2],100*sizeof(float));
         A = (float*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[0],0); //allocate memory for sharing
         B = (float*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[1],0);
         C = (float*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[2],0);
     }
 
 
-synch(par_id,par_count,ready);
+synch(par_id,par_count,ready,1);
 
 if(par_id==0)
     {
-	//TODO: initialize the matrices A and B
 
         for(int i=0;i<MATRIX_DIMENSION_XY;i++){
             for(int j=0;j<MATRIX_DIMENSION_XY;j++){
@@ -142,19 +168,19 @@ if(par_id==0)
         }
     }
 
-synch(par_id,par_count,ready);
+synch(par_id,par_count,ready,2);
 
-//TODO: quadratic_matrix_multiplication_parallel(par_id, par_count,A,B,C, ...);
+    quadratic_matrix_multiplication_parallel( par_id, par_count,A, B, C); //performs multiplication based on the child id
 	
-synch(par_id,par_count,ready);
+synch(par_id,par_count,ready,3);
 
 if(par_id==0){
-    // quadratic_matrix_print(C);
+    quadratic_matrix_print(C);
 
     quadratic_matrix_print(A);
     quadratic_matrix_print(B);
 }
-synch(par_id, par_count, ready);
+synch(par_id, par_count, ready,4);
 
 //lets test the result:
 float M[MATRIX_DIMENSION_XY * MATRIX_DIMENSION_XY];
@@ -173,6 +199,11 @@ shm_unlink("matrixA");
 shm_unlink("matrixB");
 shm_unlink("matrixC");
 shm_unlink("synchobject");
+
+// munmap(ready, par_count*sizeof(int));   //free mem allocated 
+// munmap(A,100*sizeof(int));
+// munmap(B,100*sizeof(int));
+// munmap(C,100*sizeof(int));
 
 return 0;    
 }
