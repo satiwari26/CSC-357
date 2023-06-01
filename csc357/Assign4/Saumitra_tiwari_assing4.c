@@ -10,8 +10,19 @@
 #include <sys/types.h>
 
 
-int main(){
-    int par_count = 5; 
+int main(int argc, char *argv[]){ 
+    if(argc !=4){
+        printf("%s \n", "not the right number of arguments");
+        return 0;
+    }
+
+    int par_count = atoi(argv[3]);
+    if(par_count<1){
+        par_count = 1;
+    }
+    else if(par_count>10){
+        par_count = 10;
+    }
     //keep track of the par_pids
     int *par_pid = (int *)mmap(NULL,par_count*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
 
@@ -31,14 +42,14 @@ int main(){
             args[2] = (char*)malloc(100);
             args[3] = (char*)malloc(100);
 
-            strcpy(args[0],"matrix\0");
+            strcpy(args[0],argv[2]);
             snprintf(args[1], sizeof(args[1]), "%d", par_pid[i]);
             snprintf(args[2], sizeof(args[2]), "%d", par_count);   
             args[3] = NULL;
 
             fflush(stdout);
 
-            execv("./matrix",args);
+            execv(args[0],args);
 
             printf("should never get to this point?\n");
 
@@ -47,6 +58,6 @@ int main(){
     }
 
     wait(0);
-    fflush(stdout);
+    // fflush(stdout);
     return 0;
 }

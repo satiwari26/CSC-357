@@ -188,8 +188,8 @@ synch(par_id,par_count,ready,3);
 if(par_id==0){
 
     quadratic_matrix_print(C);
-    quadratic_matrix_print(A);
-    quadratic_matrix_print(B);
+    // quadratic_matrix_print(A);
+    // quadratic_matrix_print(B);
 }
 
 // printf("%d Before \n",par_id);
