@@ -9,6 +9,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
 #define MATRIX_DIMENSION_XY 10
 
 
@@ -68,11 +70,19 @@ void quadratic_matrix_multiplication_parallel(int par_id, int par_count,float *A
             ending_pos = MATRIX_DIMENSION_XY;
         }
 
-        for(int i=start_pos;i<ending_pos;i++){  //for testing only need to comeback to this later
-            for(int j=0;j<MATRIX_DIMENSION_XY;j++){
-                C[j + i*MATRIX_DIMENSION_XY] = par_id;
-            }
-        }
+        for(int a = start_pos;a<ending_pos;a++) // over all cols a
+            for(int b = 0;b<MATRIX_DIMENSION_XY;b++) // over all rows b
+                for(int c = 0;c<MATRIX_DIMENSION_XY;c++) // over all rows/cols left
+                    {
+                        C[a + b*MATRIX_DIMENSION_XY] += A[c + b*MATRIX_DIMENSION_XY] * B[a + c*MATRIX_DIMENSION_XY]; 
+                    }
+
+
+        // for(int i=start_pos;i<ending_pos;i++){  //for testing only need to comeback to this later
+        //     for(int j=0;j<MATRIX_DIMENSION_XY;j++){
+        //         C[i + j*MATRIX_DIMENSION_XY] = par_id;
+        //     }
+        // }
 }
 
 
@@ -80,8 +90,6 @@ void quadratic_matrix_multiplication_parallel(int par_id, int par_count,float *A
 //************************************************************************************************************************
 void synch(int par_id,int par_count,int *ready, int gatherVal)
 {
-    printf("we are here in sync! \n");
-    printf("%d \n",par_id);
 
     // bool turnFlag = false;
     ready[par_id] = ready[par_id]+1;  //set the current process
@@ -92,18 +100,17 @@ void synch(int par_id,int par_count,int *ready, int gatherVal)
         }
     }
 
-
-    printf("we are leaving! \n");
-
 }
 //************************************************************************************************************************
 int main(int argc, char *argv[])
 {
-    printf("running matrix prog \n");
+    fflush(stdout);
 int par_id = 0; // the parallel ID of this process
 int par_count = 1; // the amount of processes
 float *A,*B,*C; //matrices A,B and C
 int *ready; //needed for synch
+
+    srand(time(NULL));  //generating the rand function seed
 
 if(argc!=3){printf("no shared\n");}
 else
@@ -154,33 +161,40 @@ else
         C = (float*)mmap(NULL,100*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[2],0);
     }
 
-
+// printf("%d Before \n",par_id);
 synch(par_id,par_count,ready,1);
+// printf("%d After \n",par_id);
 
 if(par_id==0)
     {
 
         for(int i=0;i<MATRIX_DIMENSION_XY;i++){
             for(int j=0;j<MATRIX_DIMENSION_XY;j++){
-                set_matrix_elem(A,j,i,i*10);
-                set_matrix_elem(B,j,i,j*10);
+                set_matrix_elem(A,j,i,rand()%200);
+                set_matrix_elem(B,j,i,rand()%200);
             }
         }
     }
-
+// printf("%d Before \n",par_id);
 synch(par_id,par_count,ready,2);
+// printf("%d After \n",par_id);
 
     quadratic_matrix_multiplication_parallel( par_id, par_count,A, B, C); //performs multiplication based on the child id
-	
+
+// printf("%d Before \n",par_id);	
 synch(par_id,par_count,ready,3);
+// printf("%d After \n",par_id);
 
 if(par_id==0){
-    quadratic_matrix_print(C);
 
+    quadratic_matrix_print(C);
     quadratic_matrix_print(A);
     quadratic_matrix_print(B);
 }
+
+// printf("%d Before \n",par_id);
 synch(par_id, par_count, ready,4);
+// printf("%d After \n",par_id);
 
 //lets test the result:
 float M[MATRIX_DIMENSION_XY * MATRIX_DIMENSION_XY];
@@ -200,10 +214,6 @@ shm_unlink("matrixB");
 shm_unlink("matrixC");
 shm_unlink("synchobject");
 
-// munmap(ready, par_count*sizeof(int));   //free mem allocated 
-// munmap(A,100*sizeof(int));
-// munmap(B,100*sizeof(int));
-// munmap(C,100*sizeof(int));
-
+fflush(stdout);
 return 0;    
 }
