@@ -105,11 +105,14 @@ void synch(int par_id,int par_count,int *ready, int gatherVal)
 int main(int argc, char *argv[])
 {
     fflush(stdout);
-int par_id = 0; // the parallel ID of this process
-int par_count = 1; // the amount of processes
-float *A,*B,*C; //matrices A,B and C
-int *ready; //needed for synch
+    int par_id = 0; // the parallel ID of this process
+    int par_count = 1; // the amount of processes
+    float *A,*B,*C; //matrices A,B and C
+    int *ready; //needed for synch
+    float *averageTime;
+    clock_t cb,ca;
 
+    ca = clock();
     srand(time(NULL));  //generating the rand function seed
 
 if(argc!=3){printf("no shared\n");}
@@ -121,7 +124,7 @@ else
     }
 if(par_count==1){printf("only one process\n");}
 
-int fd[4];
+int fd[5];
 if(par_id==0)
     {
         //if first child process
@@ -129,6 +132,10 @@ if(par_id==0)
         fd[1] = shm_open("matrixB",O_RDWR|O_CREAT,0777);
         fd[2] = shm_open("matrixC",O_RDWR|O_CREAT,0777);
         fd[3] = shm_open("syncObject",O_RDWR|O_CREAT,0777);
+        fd[4] = shm_open("averageTime",O_RDWR|O_CREAT,0777);
+
+        ftruncate(fd[4],sizeof(float));
+        averageTime = (float*)mmap(NULL,sizeof(float),PROT_READ|PROT_WRITE,MAP_SHARED,fd[4],0);   //to calculate the average time of all the processes
 
         ftruncate(fd[3],par_count*sizeof(int));
         ready = (int *)mmap(NULL,par_count*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[3],0);   //to keep track of all the processes status
@@ -153,6 +160,9 @@ else
         fd[1] = shm_open("matrixB",O_RDWR,0777);
         fd[2] = shm_open("matrixC",O_RDWR,0777);
         fd[3] = shm_open("syncObject",O_RDWR,0777);
+        fd[4] = shm_open("averageTime",O_RDWR,0777);
+
+        averageTime = (float*)mmap(NULL,sizeof(float),PROT_READ|PROT_WRITE,MAP_SHARED,fd[4],0);   //to calculate the average time of all the processes
 
         ready = (int *)mmap(NULL,par_count*sizeof(int),PROT_READ|PROT_WRITE,MAP_SHARED,fd[3],0);   //to keep track of all the processes status
         
@@ -195,6 +205,17 @@ if(par_id==0){
 // printf("%d Before \n",par_id);
 synch(par_id, par_count, ready,4);
 // printf("%d After \n",par_id);
+cb = clock();
+*averageTime = (*averageTime + ((double)(cb-ca)))/par_count;
+double average = *averageTime/ CLOCKS_PER_SEC *1000000;
+
+synch(par_id, par_count, ready,5);
+if(par_id==0){
+    printf("\n");
+    printf("Average time taken by all the processes(in micro Sec): %f\n",average);
+    printf("\n");
+}
+synch(par_id, par_count, ready,6);
 
 //lets test the result:
 float M[MATRIX_DIMENSION_XY * MATRIX_DIMENSION_XY];
@@ -213,6 +234,8 @@ shm_unlink("matrixA");
 shm_unlink("matrixB");
 shm_unlink("matrixC");
 shm_unlink("synchobject");
+close(fd[4]);
+shm_unlink("averageTime");
 
 fflush(stdout);
 return 0;    

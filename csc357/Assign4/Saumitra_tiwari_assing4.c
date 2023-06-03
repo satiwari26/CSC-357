@@ -10,13 +10,17 @@
 #include <sys/types.h>
 
 
+// TO RUN THE PROGRAM:
+// ./a.out matrix <process number>
+
+
 int main(int argc, char *argv[]){ 
-    if(argc !=4){
+    if(argc !=3){
         printf("%s \n", "not the right number of arguments");
         return 0;
     }
 
-    int par_count = atoi(argv[3]);
+    int par_count = atoi(argv[2]);
     if(par_count<1){
         par_count = 1;
     }
@@ -42,7 +46,7 @@ int main(int argc, char *argv[]){
             args[2] = (char*)malloc(100);
             args[3] = (char*)malloc(100);
 
-            strcpy(args[0],argv[2]);
+            strcpy(args[0],argv[1]);
             snprintf(args[1], sizeof(args[1]), "%d", par_pid[i]);
             snprintf(args[2], sizeof(args[2]), "%d", par_count);   
             args[3] = NULL;
