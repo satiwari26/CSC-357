@@ -133,7 +133,7 @@ FILE* readingFileContent(tagBITMAPFILEHEADER &readHeader,tagBITMAPINFOHEADER &in
         printf("Something went wrong! File is not opened \n");
     }
     else{
-        printf("Opening the file to retrive the contents \n \n");
+        // printf("Opening the file to retrive the contents \n \n");
     }
     
     fread(&readHeader.bfType,sizeof(readHeader.bfType),1,imageFile); //have to sequentially read the file content
@@ -170,7 +170,7 @@ FILE * writingFileContent(tagBITMAPFILEHEADER &writeHeader,tagBITMAPINFOHEADER &
         return 0;
     }
     else{
-        printf("Opening the file to retrive the contents \n \n");
+        // printf("Opening the file to retrive the contents \n \n");
     }
 
         fwrite(&writeHeader.bfType,sizeof(writeHeader.bfType),1,aFile); //have to sequentially write the file content and would be same as larger file
@@ -376,13 +376,13 @@ int main(int argc, char *argv[])
     if(par_id==0){
         for(int a = 0;a<MATRIX_DIMENSION_XY;a++){
             for(int b = 0;b<MATRIX_DIMENSION_XY*3;b = b+3){
-                C[a + b*MATRIX_DIMENSION_XY] = C[a + b*MATRIX_DIMENSION_XY]*0.03;   //normaliz it so it doesn't exceed the char value
+                C[a + b*MATRIX_DIMENSION_XY] = C[a + b*MATRIX_DIMENSION_XY]*0.02;   //normaliz it so it doesn't exceed the char value
                 C[a + b*MATRIX_DIMENSION_XY] = C[a + b*MATRIX_DIMENSION_XY]*255;
 
-                C[a + (b+1)*MATRIX_DIMENSION_XY] = C[a + (b+1)*MATRIX_DIMENSION_XY]*0.03;   //normaliz it so it doesn't exceed the char value
+                C[a + (b+1)*MATRIX_DIMENSION_XY] = C[a + (b+1)*MATRIX_DIMENSION_XY]*0.02;   //normaliz it so it doesn't exceed the char value
                 C[a + (b+1)*MATRIX_DIMENSION_XY] = C[a + (b+1)*MATRIX_DIMENSION_XY]*255;
 
-                C[a + (b+2)*MATRIX_DIMENSION_XY] = C[a + (b+2)*MATRIX_DIMENSION_XY]*0.03;   //normaliz it so it doesn't exceed the char value
+                C[a + (b+2)*MATRIX_DIMENSION_XY] = C[a + (b+2)*MATRIX_DIMENSION_XY]*0.02;   //normaliz it so it doesn't exceed the char value
                 C[a + (b+2)*MATRIX_DIMENSION_XY] = C[a + (b+2)*MATRIX_DIMENSION_XY]*255;
             }
         }
