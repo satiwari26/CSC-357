@@ -109,10 +109,13 @@ void quadratic_matrix_multiplication_parallel(int par_id, int par_count,float *A
             for(int b = 0;b<MATRIX_DIMENSION_XY*3;b = b+3) 
                 for(int c = 0;c<MATRIX_DIMENSION_XY*3;c = c+3)
                     {
-                        C[a + b*MATRIX_DIMENSION_XY] += A[(c-2) + b*MATRIX_DIMENSION_XY] * B[a + c*MATRIX_DIMENSION_XY];
-                        C[a + (b+1)*MATRIX_DIMENSION_XY] += A[(c-2) + (b+1)*MATRIX_DIMENSION_XY] * B[a + (c+1)*MATRIX_DIMENSION_XY];  //offset by 1
-                        C[a + (b+2)*MATRIX_DIMENSION_XY] += A[(c-2) + (b+2)*MATRIX_DIMENSION_XY] * B[a + (c+2)*MATRIX_DIMENSION_XY];   //offset by 2
+                        C[a + b*MATRIX_DIMENSION_XY] += A[(c/3) + b*MATRIX_DIMENSION_XY] * B[a + c*MATRIX_DIMENSION_XY];
+                        C[a + (b+1)*MATRIX_DIMENSION_XY] += A[(c/3) + (b+1)*MATRIX_DIMENSION_XY] * B[a + (c+1)*MATRIX_DIMENSION_XY];  //offset by 1
+                        C[a + (b+2)*MATRIX_DIMENSION_XY] += A[(c/3) + (b+2)*MATRIX_DIMENSION_XY] * B[a + (c+2)*MATRIX_DIMENSION_XY];   //offset by 2
                     }
+
+
+
 
         // for(int i=start_pos;i<ending_pos;i++){  //for testing only need to comeback to this later
         //     for(int j=0;j<MATRIX_DIMENSION_XY;j++){
@@ -331,13 +334,13 @@ int main(int argc, char *argv[])
             for(int i=0;i<MATRIX_DIMENSION_XY;i++){
                 for(int j=0;j<infoheaderf1.biWidth*3;j =j+3){
                     fread(&colorVal,sizeof(colorVal),1,imageFilef1);   //read the individual bytes from the bmp file
-                    set_matrix_elem(A,i,j,(float)colorVal); //populate the matrix with image blue data
+                    set_matrix_elem(B,i,j,(float)colorVal); //populate the matrix with image blue data
 
                     fread(&colorVal,sizeof(colorVal),1,imageFilef1);   //read the individual bytes from the bmp file
-                    set_matrix_elem(A,i,j+1,(float)colorVal); //populate the matrix with image green data
+                    set_matrix_elem(B,i,j+1,(float)colorVal); //populate the matrix with image green data
 
                     fread(&colorVal,sizeof(colorVal),1,imageFilef1);   //read the individual bytes from the bmp file
-                    set_matrix_elem(A,i,j+2,(float)colorVal); //populate the matrix with image red data
+                    set_matrix_elem(B,i,j+2,(float)colorVal); //populate the matrix with image red data
                 }
             }
 
@@ -348,13 +351,13 @@ int main(int argc, char *argv[])
             for(int i=0;i<MATRIX_DIMENSION_XY;i++){
                 for(int j=0;j<infoheaderf1.biWidth*3;j=j+3){
                     fread(&colorVal,sizeof(colorVal),1,imageFilef2);   //read the individual bytes from the bmp file
-                    set_matrix_elem(B,i,j+1,(float)colorVal); //populate the matrix with image blue2 data
+                    set_matrix_elem(A,i,j+1,(float)colorVal); //populate the matrix with image blue2 data
 
                     fread(&colorVal,sizeof(colorVal),1,imageFilef2);   //read the individual bytes from the bmp file
-                    set_matrix_elem(B,i,j+2,(float)colorVal); //populate the matrix with image green2 data
+                    set_matrix_elem(A,i,j+2,(float)colorVal); //populate the matrix with image green2 data
 
                     fread(&colorVal,sizeof(colorVal),1,imageFilef2);   //read the individual bytes from the bmp file
-                    set_matrix_elem(B,i,j+3,(float)colorVal); //populate the matrix with image red2 data
+                    set_matrix_elem(A,i,j+3,(float)colorVal); //populate the matrix with image red2 data
                 }
             }
 
@@ -405,12 +408,12 @@ int main(int argc, char *argv[])
     }
     synch(par_id,par_count,ready,4);
 
-    if(par_id==0){
+    // if(par_id==0){
 
-        // quadratic_matrix_print(C);
-        // quadratic_matrix_print(A);
-        // quadratic_matrix_print(B);
-    }
+    //     // quadratic_matrix_print(C);
+    //     // quadratic_matrix_print(A);
+    //     // quadratic_matrix_print(B);
+    // }
 
     // printf("%d Before \n",par_id);
     synch(par_id, par_count, ready,5);
