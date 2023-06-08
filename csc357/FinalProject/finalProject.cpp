@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
     int *ready; //needed for synch
     float *averageTime; //time take by all the processes to complete the process
     clock_t cb,ca;
-    char fileNamef1[] = "f1.bmp";
+    char fileNamef1[] = "f0.bmp";
     char fileNamef2[] = "f2.bmp";
     FILE * imageFilef1 = NULL;
     FILE * imageFilef2 = NULL;
@@ -351,13 +351,13 @@ int main(int argc, char *argv[])
             for(int i=0;i<MATRIX_DIMENSION_XY;i++){
                 for(int j=0;j<infoheaderf1.biWidth*3;j=j+3){
                     fread(&colorVal,sizeof(colorVal),1,imageFilef2);   //read the individual bytes from the bmp file
-                    set_matrix_elem(A,i,j+1,(float)colorVal); //populate the matrix with image blue2 data
+                    set_matrix_elem(A,i,j,(float)colorVal); //populate the matrix with image blue2 data
 
                     fread(&colorVal,sizeof(colorVal),1,imageFilef2);   //read the individual bytes from the bmp file
-                    set_matrix_elem(A,i,j+2,(float)colorVal); //populate the matrix with image green2 data
+                    set_matrix_elem(A,i,j+1,(float)colorVal); //populate the matrix with image green2 data
 
                     fread(&colorVal,sizeof(colorVal),1,imageFilef2);   //read the individual bytes from the bmp file
-                    set_matrix_elem(A,i,j+3,(float)colorVal); //populate the matrix with image red2 data
+                    set_matrix_elem(A,i,j+2,(float)colorVal); //populate the matrix with image red2 data
                 }
             }
 
