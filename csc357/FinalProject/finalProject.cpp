@@ -238,8 +238,8 @@ int main(int argc, char *argv[])
     int *ready; //needed for synch
     float *averageTime; //time take by all the processes to complete the process
     clock_t cb,ca;
-    char fileNamef1[] = "f0.bmp";
-    char fileNamef2[] = "f2.bmp";
+    char fileNamef1[] = "f2.bmp";
+    char fileNamef2[] = "f0.bmp";
     FILE * imageFilef1 = NULL;
     FILE * imageFilef2 = NULL;
 
@@ -392,13 +392,13 @@ int main(int argc, char *argv[])
         fseek(imageFilef1,readHeaderf1.bfOffBits,SEEK_SET);    //image 1 data in matrix A
             for(int i=0;i<MATRIX_DIMENSION_XY;i++){
                 for(int j=0;j<infoheaderf1.biWidth*3;j=j+3){
-                    colorVal = (char)C[i + j*MATRIX_DIMENSION_XY];  //blue value
+                    colorVal = (char)C[(MATRIX_DIMENSION_XY-i-1) + j*MATRIX_DIMENSION_XY];  //blue value
                     fwrite(&colorVal,sizeof(colorVal),1,imageFilef1);
 
-                    colorVal = (char)C[i + (j+1)*MATRIX_DIMENSION_XY];  //green value
+                    colorVal = (char)C[(MATRIX_DIMENSION_XY-i-1) + (j+1)*MATRIX_DIMENSION_XY];  //green value
                     fwrite(&colorVal,sizeof(colorVal),1,imageFilef1);
 
-                    colorVal = (char)C[i + (j+2)*MATRIX_DIMENSION_XY];  //Red value
+                    colorVal = (char)C[(MATRIX_DIMENSION_XY-i-1) + (j+2)*MATRIX_DIMENSION_XY];  //Red value
                     fwrite(&colorVal,sizeof(colorVal),1,imageFilef1);
                 }
             }

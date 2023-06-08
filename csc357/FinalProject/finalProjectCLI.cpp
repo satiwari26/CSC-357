@@ -11,7 +11,7 @@
 
 using namespace std;
 // TO RUN THE PROGRAM:
-// ./a.out matrix <process number>
+// ./a.out finalProject <process number>
 
 
 int main(int argc, char *argv[]){ 
